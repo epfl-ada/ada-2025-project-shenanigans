@@ -1,0 +1,9 @@
+[package]
+name = "process"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+charming = "0.6.0"
+polars = { version = "0.51.0", features = ["lazy", "decompress", "parquet", "bigidx", "rank", "iejoin", "rows"] }
+serde_json = "1.0.145"
