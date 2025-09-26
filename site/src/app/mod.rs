@@ -103,7 +103,7 @@ fn generate_graph()
     >::from(&StableGraph::<_, _, Undirected>::default());
 
     let desered: SerGraph =
-        serde_json::from_str(include_str!("../../../process/graph.json"))
+        serde_json::from_str(include_str!("../../graph.json"))
             .unwrap();
 
     console::log_1(
