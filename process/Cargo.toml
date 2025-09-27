@@ -4,10 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-arrow = "56.2.0"
-charming = "0.6.0"
 flate2 = "1.1.2"
-parquet = "56.2.0"
-polars = { version = "0.51.0", features = ["lazy", "decompress", "parquet", "bigidx", "rank", "iejoin", "rows"] }
-serde = "1.0.227"
+petgraph = "0.8.2"
+rayon = "1.11.0"
+serde = { version = "1.0.227", features = ["derive"] }
 serde_json = "1.0.145"
