@@ -1,0 +1,10 @@
+[package]
+name = "tograph"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+flate2.workspace = true
+petgraph = "0.8.2"
+serde.workspace = true
+serde_json.workspace = true
