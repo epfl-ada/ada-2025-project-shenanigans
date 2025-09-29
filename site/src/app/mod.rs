@@ -1,4 +1,7 @@
-use deser::SerGraph;
+use std::io::Write;
+use std::{cell::RefCell, rc::Rc};
+
+use deser::{SerCol, SerGraph};
 use edge::AdaEdgeShape;
 use eframe::{App, CreationContext};
 use egui::{Color32, Context, Pos2};
@@ -6,11 +9,11 @@ use egui_graphs::{
     Graph, GraphView, SettingsInteraction, SettingsNavigation, events::Event,
 };
 use event_filters::EventFilters;
+use flate2::write::GzDecoder;
 use node::AdaNodeShape;
 use petgraph::Undirected;
 use petgraph::csr::DefaultIx;
 use petgraph::stable_graph::StableGraph;
-use std::{cell::RefCell, rc::Rc};
 use web_sys::console;
 
 mod deser;
@@ -67,9 +70,10 @@ impl Adapp {
 impl App for Adapp {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
+            ctx.set_visuals(egui::Visuals::light());
             ctx.style_mut(|style| {
                 style.visuals.widgets.inactive.fg_stroke.color =
-                    Color32::DARK_GRAY;
+                    Color32::GRAY;
             });
 
             let mut view = GraphView::<_, _, _, _, _, _>::new(&mut self.g)
@@ -93,6 +97,23 @@ impl App for Adapp {
 
 fn generate_graph()
 -> Graph<(), (), Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape> {
+    let gzipped = include_bytes!("../../smallergraph.json.gz");
+    let mut deco = GzDecoder::new(Vec::new());
+    deco.write_all(gzipped).unwrap();
+    let desered: SerGraph =
+        serde_json::from_slice(&deco.finish().unwrap()).unwrap();
+
+    let gzipped = include_bytes!("../../colours.json.gz");
+    let mut deco = GzDecoder::new(Vec::new());
+    deco.write_all(gzipped).unwrap();
+    let colours: Vec<SerCol> =
+        serde_json::from_slice(&deco.finish().unwrap()).unwrap();
+
+    console::log_1(
+        &format!("loading {} edges", desered.edges.len())
+            .as_str()
+            .into(),
+    );
     let mut g = Graph::<
         (),
         (),
@@ -100,36 +121,22 @@ fn generate_graph()
         DefaultIx,
         AdaNodeShape,
         AdaEdgeShape,
-    >::from(&StableGraph::<_, _, Undirected>::default());
-
-    let desered: SerGraph =
-        serde_json::from_str(include_str!("../../graph.json"))
-            .unwrap();
+    >::from(&StableGraph::<_, _, Undirected>::from_edges(
+        &desered.edges,
+    ));
 
     console::log_1(
         &format!("loading {} nodes", desered.nodes.len())
             .as_str()
             .into(),
     );
-    desered.nodes.iter().for_each(|n| {
-        let id = g.add_node_with_label_and_location(
-            (),
-            n.name.clone(),
-            Pos2 { x: n.x, y: n.y },
-        );
-        assert_eq!(id, n.id.into());
-        let node = g.node_mut(id).unwrap();
-        node.display_mut().set_radius(n.size / 5.0);
-        node.set_color(Color32::WHITE);
-    });
-
-    console::log_1(
-        &format!("loading {} edges", desered.edges.len())
-            .as_str()
-            .into(),
-    );
-    desered.edges.iter().for_each(|e| {
-        g.add_edge(e.source.into(), e.target.into(), ());
+    desered.nodes.iter().zip(colours).for_each(|(n, c)| {
+        assert_eq!(n.id, c.id);
+        let node = g.node_mut(n.id.into()).unwrap();
+        node.set_label(n.uid.clone());
+        node.set_location(Pos2 { x: n.x, y: n.y });
+        node.display_mut().set_radius(0.5);
+        node.set_color(Color32::from_rgb(c.c[0], c.c[1], c.c[2]));
     });
 
     console::log_1(&"finished loading!".into());

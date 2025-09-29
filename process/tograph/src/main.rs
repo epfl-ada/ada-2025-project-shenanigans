@@ -8,12 +8,15 @@ use fdg::{
     petgraph::stable_graph::{NodeIndex, StableGraph},
 };
 use flate2::{Compression, read::GzDecoder, write::GzEncoder};
+use scarlet;
+use scarlet::color::RGBColor;
+use scarlet::colormap::ColorMap;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct SerNode {
-    pub id: usize,
+    pub id: u32,
     pub uid: String,
     pub x: f32,
     pub y: f32,
@@ -22,17 +25,23 @@ struct SerNode {
 #[derive(Debug, Serialize, Deserialize)]
 struct SerGraph {
     pub nodes: Vec<SerNode>,
-    pub edges: Vec<[usize; 2]>,
+    pub edges: Vec<(u32, u32)>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct SerCol {
+    pub id: u32,
+    pub c: [u8; 3],
 }
 
 fn main() {
     let file = File::open("graph_ltriang.json.gz").unwrap();
     let mut reader = BufReader::new(GzDecoder::new(file));
 
-    let mut i = 0usize;
-    let mut j = 0usize;
-    let mut inserted = HashMap::<usize, NodeIndex>::new();
-    let mut matgraph = StableGraph::<usize, ()>::new();
+    let mut i = 0u32;
+    let mut j = 0u32;
+    let mut inserted = HashMap::<u32, NodeIndex>::new();
+    let mut matgraph = StableGraph::<u32, ()>::new();
 
     let mut dummy = [0; 1];
     let _ = reader.read_exact(&mut dummy);
@@ -59,8 +68,6 @@ fn main() {
 
         buf.clear();
     }
-    let inserted: HashMap<NodeIndex, usize> =
-        inserted.drain().map(|(k, v)| (v, k)).collect();
 
     println!(
         "loaded {} nodes and {} edges!",
@@ -68,7 +75,7 @@ fn main() {
         matgraph.edge_count()
     );
 
-    let mut forcegraph: ForceGraph<f32, 2, usize, ()> =
+    let mut forcegraph: ForceGraph<f32, 2, u32, ()> =
         fdg::init_force_graph_uniform(matgraph, 10.0);
     FruchtermanReingoldParallel::default().apply_many(&mut forcegraph, 2);
     fdg::simple::Center::default().apply(&mut forcegraph);
@@ -77,28 +84,53 @@ fn main() {
 
     let file = File::open("channelkey.json.gz").unwrap();
     let reader = BufReader::new(GzDecoder::new(file));
-    let mut channels: HashMap<String, usize> =
+    let mut channels: HashMap<String, u32> =
         serde_json::from_reader(reader).unwrap();
-    let channels: HashMap<usize, String> =
+    let channels: HashMap<u32, String> =
         channels.drain().map(|(k, v)| (v, k)).collect();
 
     println!("loaded channel map!");
 
-    let nodes = forcegraph
+    let mut nodes: Vec<SerNode> = forcegraph
         .node_weights()
         .map(|(id, c)| SerNode {
-            id: *id,
+            id: inserted.get(id).unwrap().index() as u32,
             uid: channels.get(id).unwrap().to_string(),
             x: c.x,
             y: c.y,
         })
         .collect();
+    nodes.sort_by(|a, b| a.id.cmp(&b.id));
 
-    let edges = forcegraph
+    let n_nei: Vec<usize> = nodes
+        .iter()
+        .map(|e| forcegraph.neighbors_undirected(e.id.into()).count())
+        .collect();
+    let max_nei = *n_nei.iter().max().unwrap() as f64;
+
+    let cmap = scarlet::colormap::ListedColorMap::plasma();
+    let colours: Vec<SerCol> = nodes
+        .iter()
+        .zip(n_nei)
+        .map(|(e, n)| {
+            let colour: RGBColor =
+                cmap.transform_single(f64::powf(n as f64 / max_nei, 0.25));
+            SerCol {
+                id: e.id,
+                c: [colour.int_r(), colour.int_g(), colour.int_b()],
+            }
+        })
+        .collect();
+
+    let file = File::create("colours.json.gz").unwrap();
+    let writer = BufWriter::new(GzEncoder::new(file, Compression::default()));
+    let _ = serde_json::to_writer(writer, &colours);
+
+    let edges: Vec<(u32, u32)> = forcegraph
         .edge_indices()
         .map(|e| {
             let (a, b) = forcegraph.edge_endpoints(e).unwrap();
-            [*inserted.get(&a).unwrap(), *inserted.get(&b).unwrap()]
+            (a.index() as u32, b.index() as u32)
         })
         .collect();
 
