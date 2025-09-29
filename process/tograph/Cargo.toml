@@ -4,6 +4,8 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+egui_graphs = "0.28.0"
+fdg = { git = "https://github.com/grantshandy/fdg.git", version = "1.0.0" }
 flate2.workspace = true
 petgraph = "0.8.2"
 serde.workspace = true
