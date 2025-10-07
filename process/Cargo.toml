@@ -1,7 +1,6 @@
 [workspace]
 members = [
-  "ltriang",
-  "tograph",
+  "ltriang", "tograph", "toumap",
 ]
 resolver = "3"
 
