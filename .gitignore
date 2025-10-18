@@ -1,6 +1,7 @@
 dataset/*.csv
 *.npy
 *.svg
+*.gz
 *.pt
 *.avi
 *.mp4
