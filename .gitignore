@@ -5,6 +5,8 @@ dataset/*.csv
 *.avi
 *.mp4
 **/.DS_Store
+*.jsonl
+*.gz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
