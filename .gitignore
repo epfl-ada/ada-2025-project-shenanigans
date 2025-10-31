@@ -5,6 +5,7 @@ dataset/*.csv
 *.pt
 *.avi
 *.mp4
+*.pkl
 **/.DS_Store
 
 # Byte-compiled / optimized / DLL files
