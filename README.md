@@ -2,14 +2,13 @@
 
 ### Analyzing duration, uploads, and sponsorship trends over time.
 
-## Summary
-This project will investigate the professionalization of YouTube creators-analysing the journey from indie channels to industry-like settings. We will first focus on temporal patterns in three fundamentals of creator behavior: **average video duration**, **upload frequency** and **Engagement (views, likes, comments)**. We will then dive into our research questions on the **professionalisation of indie creators**. Using a large panel of [YouTube data](https://github.com/epfl-dlab/YouNiverse) from 2005 to 2019, we will quantify how and when creators adopt professional strategies, and what is the effect on audience response.
+## Abstract
+Is there a better way to analyze professionalisation than the YouTube case? On this platform, the creator economy has clearly evolved from indie uploads to established businesses. Yet we want to quantify and analyse rigorously these patterns. 
 
-## Motivation
-Is there a better way to analyze professionalisation than the YouTube case? On this platform, the creator economy has clearly evolved from indie uploads to established businesses. Yet we want to quantify and analyse rigorously these patterns. To do this, we identified **3 main research questions** that we aim to answer with **reproducible, data-driven methods**.
+This project will investigate the professionalization of YouTube creators-analysing the journey from indie channels to industry-like settings. We will first focus on temporal patterns in three fundamentals of creator behavior: **average video duration**, **upload frequency** and **Engagement (views, likes, comments)**. We will then dive into our research questions on the **professionalisation of indie creators**. Using a large panel of [YouTube data](https://github.com/epfl-dlab/YouNiverse) from 2005 to 2019, we will quantify how and when creators adopt professional strategies, and what is the effect on audience response. To do this, we identified **3 main research questions** that we aim to answer with **reproducible, data-driven methods**.
 
 ## Research Questions
-We split the work into three approximately equal parts:
+We will split the work into three approximately equal parts:
 
 RQ 1: How have channels evolved from indie to professional?
 - What is the **adoption curve** of sponsorships between different categories?
@@ -38,4 +37,31 @@ RQ 3: How does a focus on professionalism affect engagement?
 - **Unshortening URLs**: many URLs in the dataset correspond to shortened URLs (e.g. bit.ly). We could unshorten these by using GET requests and analysing the responses.
 - **Channel and video activity tracking (YouTube API v3)**: check upload activity for 136K+ channels and re-query videos to flag active, inactive, deleted, or private content, helping compare stability between professional and indie creators.
 
+## Methods
 
+## Proposed timeline
+
+- **5-12 Nov.**: work on the temporal evolution on YouTube (introduction)
+
+- **12-19 Nov.**: work on the research questions
+
+- **19-26 Nov.**: work on the research questions 
+
+- **26 Nov. - 3 Dec.**: work on the research questions and on the website
+
+- **3-10 Dec.**: work on the research questions and on the website
+
+- **10-17 Dec.**: finalize everything
+
+
+## Organization within the team
+
+- *Ender Sari*:
+
+- *Kalan Walmsley*:
+
+- *Veronika Wannack*:
+
+- *Jan Tomasz Juraszek*:
+
+- *Danael Robert-Nicoud*:
