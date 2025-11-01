@@ -1,0 +1,41 @@
+# How indie YouTubers became industry players 
+
+### Analyzing duration, uploads, and sponsorship trends over time.
+
+## Summary
+This project will investigate the professionalization of YouTube creators-analysing the journey from indie channels to industry-like settings. We will first focus on temporal patterns in three fundamentals of creator behavior: **average video duration**, **upload frequency** and **Engagement (views, likes, comments)**. We will then dive into our research questions on the **professionalisation of indie creators**. Using a large panel of [YouTube data](https://github.com/epfl-dlab/YouNiverse) from 2005 to 2019, we will quantify how and when creators adopt professional strategies, and what is the effect on audience response.
+
+## Motivation
+Is there a better way to analyze professionalisation than the YouTube case? On this platform, the creator economy has clearly evolved from indie uploads to established businesses. Yet we want to quantify and analyse rigorously these patterns. To do this, we identified **3 main research questions** that we aim to answer with **reproducible, data-driven methods**.
+
+## Research Questions
+We split the work into three approximately equal parts:
+
+RQ 1: How have channels evolved from indie to professional?
+- What is the **adoption curve** of sponsorships between different categories?
+- When and why do we have a **rise of sponsorships**? &rarr; description link analysis
+- Have **advertisement strategies** changed over time?
+- Do **different channel sizes** employ **different strategies** (e.g. multiple sponsors recurring sponsors, brand partnerships)?
+
+RQ 2: What enabled indie channels to become professional-minded?
+- At what **subscriber thresholds** do creators start showing **"industry-like" patterns** (sponsors, steady uploads, longer videos, higher engagement  ratios)?
+- How does being sponsored **change the channel**? Is channel **growth** (weekly subscribers / views) correlated with **production investment signals** such as upload density or runtime? Any other metrics (tags / length of title)?
+- Are there **early behavioral indicators** (upload rhythm, engagement) that predict **professionalisation**?
+- Are channel/video **categories and sponsors correlated**?
+- Are there **cohorts of channels** with the same/similar sponsors?
+- What are the **differences** between categories for **"professional" channels** (e.g. > 100k subscribers in sports vs education)? How are they different?
+- Do **"overnight successes"** professionalise faster than slow, organic growers?
+- Can we detect signs of professionalism by analysing which videos were later removed, using the YouTube API?
+
+RQ 3: How does a focus on professionalism affect engagement?
+- Does the **number of views, subscriber growth, like/dislike ratio** change **after the first sponsor** appears? How?
+- Is it **different between categories**? Is it **different between the years**?
+- Do those metrics **change over time** (track **monetised vs non monetised channels**)?
+
+## Dataset enrichment
+- Use the **SponsorBlock** crowdsourced dataset of sponsored videos: which videos are labelled as having **in-video sponsor segments**, what **kind of segments** are they (self-promotion, ad read, etc.), **when** do the sponsor segments occur. 
+    - Limitations: dataset started in 2019, thus early videos might not be labelled. Also, it consists in a chrome extension which might attract a tech-savier audience and skew the video topics.
+- **Unshortening URLs**: many URLs in the dataset correspond to shortened URLs (e.g. bit.ly). We could unshorten these by using GET requests and analysing the responses.
+- **Channel and video activity tracking (YouTube API v3)**: check upload activity for 136K+ channels and re-query videos to flag active, inactive, deleted, or private content, helping compare stability between professional and indie creators.
+
+
