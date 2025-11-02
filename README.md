@@ -62,49 +62,57 @@ audiences. To do this, we identified
 
 ## Dataset enrichment
 
-<!-- prettier-ignore-start -->
-
 - **Sponsor segment analysis**: Use the
   [**SponsorBlock**](https://github.com/ajayyy/SponsorBlock) crowdsourced
   dataset of sponsored videos: which videos are labelled as having **in-video
   sponsor segments**, what **kind of segments** are they (self-promotion, ad
   read, _etc._), **when** do the sponsor segments occur?
-    > [!NOTE]
-    > Limitations: the crowdsourced dataset started in 2019, thus early videos
-    > might not be labelled. The project consists in a chrome extension, which
-    > might attract a tech-savier audience and skew the video topics.
+
+<!-- prettier-ignore-start -->
+> [!NOTE]
+> Limitations: the crowdsourced dataset started in 2019, thus early videos might
+> not be labelled. The project consists in a chrome extension, which might
+> attract a tech-savier audience and skew the video topics.
+<!-- prettier-ignore-end -->
+
 - **Unshortening URLs**: many URLs in the dataset correspond to shortened URLs
   (_e.g._ [bit.ly](https://bitly.com/)). We could unshorten these by using `GET`
   requests and analysing the responses.
-    > [!NOTE]
-    > Limitations: resolving these links might be unfeasible due to the volume
-    > of requests to make and parse.
+
+<!-- prettier-ignore-start -->
+> [!NOTE]
+> Limitations: resolving these links might be unfeasible due to the volume of
+> requests to make and parse.
+<!-- prettier-ignore-end -->
+
 - **Channel and video activity tracking**: check upload activity for all
   channels and re-query videos to flag active, inactive, deleted, or private
   content using the [**YouTube API**](https://developers.google.com/youtube/v3).
   This would enable comparing of stability between professional and indie
   creators.
-    > [!NOTE]
-    > Limitations: all channels/videos might not be able to be checked due to
-    > API limits.
 
+<!-- prettier-ignore-start -->
+> [!NOTE]
+> Limitations: all channels/videos might not be able to be checked due to API
+> limits.
 <!-- prettier-ignore-end -->
 
 ## Methods
 
 ## Proposed timeline
 
-- **5 -- 12 Nov.**: work on the temporal evolution on YouTube (introduction)
+- **5 &mdash; 12 Nov.**: work on the temporal evolution on YouTube
+  (introduction)
 
-- **12 -- 19 Nov.**: work on the research questions
+- **12 &mdash; 19 Nov.**: work on the research questions
 
-- **19 -- 26 Nov.**: work on the research questions
+- **19 &mdash; 26 Nov.**: work on the research questions
 
-- **26 Nov. -- 3 Dec.**: work on the research questions and on the website
+- **26 Nov. &mdash; 3 Dec.**: work on the research questions and on the website
 
-- **3 -- 10 Dec.**: work on the research questions and on the website
+- **3 &mdash; 10 Dec.**: work on the research questions and on the website
 
-- **10 -- 17 Dec.**: finalise everything
+- **10 &mdash; 17 Dec.**: finalise everything
 
 ## Organisation within the team
 
