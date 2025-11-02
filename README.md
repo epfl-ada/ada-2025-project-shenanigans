@@ -99,20 +99,20 @@ audiences. To do this, we identified
 
 ## Methods
 
+<!-- TODO -->
+
 ## Proposed timeline
 
-- **5 &mdash; 12 Nov.**: work on the temporal evolution on YouTube
-  (introduction)
-
-- **12 &mdash; 19 Nov.**: work on the research questions
-
-- **19 &mdash; 26 Nov.**: work on the research questions
-
-- **26 Nov. &mdash; 3 Dec.**: work on the research questions and on the website
-
-- **3 &mdash; 10 Dec.**: work on the research questions and on the website
-
-- **10 &mdash; 17 Dec.**: finalise everything
+```mermaid
+gantt
+    title ada project timeline
+    dateFormat YYYY-MM-DD
+    section research
+        temporal evolution :a1, 2025-11-5, 7d
+        research questions :after a1, 2025-12-10
+    section website
+        website            :2025-11-26, 2025-12-17
+```
 
 ## Organisation within the team
 
