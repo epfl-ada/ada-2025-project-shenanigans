@@ -1,39 +1,37 @@
 # How indie YouTubers became industry players
 
-> Analyzing duration, uploads, and sponsorship trends over time.
+> _Analyzing duration, uploads, and sponsorship trends over time._
 
 ## Abstract
 
-Is there a better way to analyze professionalisation than the YouTube case? On
-this platform, the creator economy has clearly evolved from indie uploads to
-established businesses. Yet we want to quantify and analyse rigorously these
-patterns.
+Is there a better way to analyze social media professionalization than the
+YouTube case? On this platform, the creator economy has clearly evolved from
+indie uploads to established businesses. We want to quantify and rigorously
+analyse these patterns.
 
-This project will investigate the professionalization of YouTube
-creators-analysing the journey from indie channels to industry-like settings. We
-will first focus on temporal patterns in three fundamentals of creator behavior:
-**average video duration**, **upload frequency** and **Engagement (views, likes,
-comments)**. We will then dive into our research questions on the
-**professionalisation of indie creators**. Using a large panel of
-[YouTube data](https://github.com/epfl-dlab/YouNiverse) from 2005 to 2019, we
-will quantify how and when creators adopt professional strategies, and what is
-the effect on audience response. To do this, we identified **3 main research
-questions** that we aim to answer with **reproducible, data-driven methods**.
+This project will investigate the professionalization of YouTube creators --
+analyzing the journey from indie channels to industry-like settings. We will
+first focus on temporal patterns in three key creator metrics: **video
+duration**, **upload frequency**, and **engagement (views, likes, comments)**.
+We will then dive into the **professionalization of indie creators**. Using a
+large panel of [**YouTube data**](https://github.com/epfl-dlab/YouNiverse)
+spanning from 2005 to 2019, we will quantify how and when creators adopt
+professional strategies, and what the effects are on their channels and
+audiences. To do this, we identified
+[**3 main research questions**](#research-questions) that we aim to answer with
+**reproducible, data-driven methods**.
 
 ## Research Questions
 
-We will split the work into three approximately equal parts:
-
-RQ 1: How have channels evolved from indie to professional?
+### How have channels evolved from indie to professional?
 
 - What is the **adoption curve** of sponsorships between different categories?
-- When and why do we have a **rise of sponsorships**? &rarr; description link
-  analysis
+- When and why do we have a **rise of sponsorships**?
 - Have **advertisement strategies** changed over time?
-- Do **different channel sizes** employ **different strategies** (e.g. multiple
-  sponsors recurring sponsors, brand partnerships)?
+- Do **different channel sizes** employ **different strategies** (_e.g._
+  multiple sponsors, recurring sponsors, brand partnerships)?
 
-RQ 2: What enabled indie channels to become professional-minded?
+### What enabled indie channels to become professional-minded?
 
 - At what **subscriber thresholds** do creators start showing **"industry-like"
   patterns** (sponsors, steady uploads, longer videos, higher engagement
@@ -46,53 +44,56 @@ RQ 2: What enabled indie channels to become professional-minded?
 - Are channel/video **categories and sponsors correlated**?
 - Are there **cohorts of channels** with the same/similar sponsors?
 - What are the **differences** between categories for **"professional"
-  channels** (e.g. > 100k subscribers in sports vs education)? How are they
+  channels** (_e.g._ > 100k subscribers in sports vs education)? How are they
   different?
 - Do **"overnight successes"** professionalise faster than slow, organic
   growers?
-- Can we detect signs of professionalism by analysing which videos were later
-  removed, using the YouTube API?
+- Can we detect signs of professionalism by analysing **which videos were later
+  removed**, using the
+  [**YouTube API**](https://developers.google.com/youtube/v3)?
 
-RQ 3: How does a focus on professionalism affect engagement?
+### How does a focus on professionalism affect engagement?
 
-- Does the **number of views, subscriber growth, like/dislike ratio** change
-  **after the first sponsor** appears? How?
+- Does the **number of views**, **subscriber growth**, **like/dislike ratio**
+  change **after the first sponsor** appears? How?
 - Is it **different between categories**? Is it **different between the years**?
 - Do those metrics **change over time** (track **monetised vs non monetised
   channels**)?
 
 ## Dataset enrichment
 
-- Use the **SponsorBlock** crowdsourced dataset of sponsored videos: which
-  videos are labelled as having **in-video sponsor segments**, what **kind of
-  segments** are they (self-promotion, ad read, etc.), **when** do the sponsor
-  segments occur.
-    - Limitations: dataset started in 2019, thus early videos might not be
-      labelled. Also, it consists in a chrome extension which might attract a
-      tech-savier audience and skew the video topics.
+- **Sponsor segment analysis**: Use the
+  [**SponsorBlock**](https://github.com/ajayyy/SponsorBlock) crowdsourced
+  dataset of sponsored videos: which videos are labelled as having **in-video
+  sponsor segments**, what **kind of segments** are they (self-promotion, ad
+  read, _etc._), **when** do the sponsor segments occur?
+    > [!NOTE] Limitations: dataset started in 2019, thus early videos might not
+    > be labelled. Also, it consists in a chrome extension which might attract a
+    > tech-savier audience and skew the video topics.
 - **Unshortening URLs**: many URLs in the dataset correspond to shortened URLs
-  (e.g. bit.ly). We could unshorten these by using GET requests and analysing
-  the responses.
-- **Channel and video activity tracking (YouTube API v3)**: check upload
-  activity for 136K+ channels and re-query videos to flag active, inactive,
-  deleted, or private content, helping compare stability between professional
-  and indie creators.
+  (_e.g._ [bit.ly](https://bitly.com/)). We could unshorten these by using `GET`
+  requests and analyzing the responses.
+- **Channel and video activity tracking**: check upload activity for all
+  channels and re-query videos to flag active, inactive, deleted, or private
+  content using the [**YouTube API**](https://developers.google.com/youtube/v3).
+  This would enable comparing of stability between professional and indie
+  creators.
 
 ## Methods
 
 ## Proposed timeline
 
-- **5-12 Nov.**: work on the temporal evolution on YouTube (introduction)
+- **5 -- 12 Nov.**: work on the temporal evolution on YouTube (introduction)
 
-- **12-19 Nov.**: work on the research questions
+- **12 -- 19 Nov.**: work on the research questions
 
-- **19-26 Nov.**: work on the research questions
+- **19 -- 26 Nov.**: work on the research questions
 
-- **26 Nov. - 3 Dec.**: work on the research questions and on the website
+- **26 Nov. -- 3 Dec.**: work on the research questions and on the website
 
-- **3-10 Dec.**: work on the research questions and on the website
+- **3 -- 10 Dec.**: work on the research questions and on the website
 
-- **10-17 Dec.**: finalize everything
+- **10 -- 17 Dec.**: finalize everything
 
 ## Organization within the team
 
