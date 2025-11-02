@@ -1,19 +1,19 @@
 # How indie YouTubers became industry players
 
-> _Analyzing duration, uploads, and sponsorship trends over time._
+> _Analysing duration, uploads, and sponsorship trends over time._
 
 ## Abstract
 
-Is there a better way to analyze social media professionalization than the
+Is there a better way to analyse social media professionalisation than the
 YouTube case? On this platform, the creator economy has clearly evolved from
 indie uploads to established businesses. We want to quantify and rigorously
 analyse these patterns.
 
-This project will investigate the professionalization of YouTube creators --
-analyzing the journey from indie channels to industry-like settings. We will
+This project will investigate the professionalisation of YouTube creators --
+analysing the journey from indie channels to industry-like settings. We will
 first focus on temporal patterns in three key creator metrics: **video
 duration**, **upload frequency**, and **engagement (views, likes, comments)**.
-We will then dive into the **professionalization of indie creators**. Using a
+We will then dive into the **professionalisation of indie creators**. Using a
 large panel of [**YouTube data**](https://github.com/epfl-dlab/YouNiverse)
 spanning from 2005 to 2019, we will quantify how and when creators adopt
 professional strategies, and what the effects are on their channels and
@@ -62,22 +62,33 @@ audiences. To do this, we identified
 
 ## Dataset enrichment
 
+<!-- prettier-ignore-start -->
+
 - **Sponsor segment analysis**: Use the
   [**SponsorBlock**](https://github.com/ajayyy/SponsorBlock) crowdsourced
   dataset of sponsored videos: which videos are labelled as having **in-video
   sponsor segments**, what **kind of segments** are they (self-promotion, ad
   read, _etc._), **when** do the sponsor segments occur?
-    > [!NOTE] Limitations: dataset started in 2019, thus early videos might not
-    > be labelled. Also, it consists in a chrome extension which might attract a
-    > tech-savier audience and skew the video topics.
+    > [!NOTE]
+    > Limitations: the crowdsourced dataset started in 2019, thus early videos
+    > might not be labelled. The project consists in a chrome extension, which
+    > might attract a tech-savier audience and skew the video topics.
 - **Unshortening URLs**: many URLs in the dataset correspond to shortened URLs
   (_e.g._ [bit.ly](https://bitly.com/)). We could unshorten these by using `GET`
-  requests and analyzing the responses.
+  requests and analysing the responses.
+    > [!NOTE]
+    > Limitations: resolving these links might be unfeasible due to the volume
+    > of requests to make and parse.
 - **Channel and video activity tracking**: check upload activity for all
   channels and re-query videos to flag active, inactive, deleted, or private
   content using the [**YouTube API**](https://developers.google.com/youtube/v3).
   This would enable comparing of stability between professional and indie
   creators.
+    > [!NOTE]
+    > Limitations: all channels/videos might not be able to be checked due to
+    > API limits.
+
+<!-- prettier-ignore-end -->
 
 ## Methods
 
@@ -93,9 +104,9 @@ audiences. To do this, we identified
 
 - **3 -- 10 Dec.**: work on the research questions and on the website
 
-- **10 -- 17 Dec.**: finalize everything
+- **10 -- 17 Dec.**: finalise everything
 
-## Organization within the team
+## Organisation within the team
 
 - _Ender Sari_:
 
