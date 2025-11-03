@@ -1,5 +1,6 @@
 <h1 align="center">
     How indie YouTubers became industry players
+    <br>
     <img src="./assets/shenanigans.svg" alt="sheNaNigans">
 </h1>
 
