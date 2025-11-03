@@ -1,7 +1,7 @@
 <h1 align="center">
     How indie YouTubers became industry players
-    <br>
-    <img src="./assets/shenanigans.svg" alt="sheNaNigans", style="width: 50%;margin-top: 1em;">
+    <br><br>
+    <img src="./assets/shenanigans.svg" alt="sheNaNigans", style="width: 20rem;">
 </h1>
 
 > _Analysing duration, uploads, and sponsorship trends over time._
