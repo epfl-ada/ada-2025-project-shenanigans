@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="101.69146mm"
+   height="17.762173mm"
+   viewBox="0 0 101.69146 17.762173"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   sodipodi:docname="shenanigans.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#191724"
+     bordercolor="#26233a"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#191724"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.4151096"
+     inkscape:cx="127.90529"
+     inkscape:cy="166.41821"
+     inkscape:window-width="2210"
+     inkscape:window-height="1428"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g4" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-60.89572,-139.61891)">
+    <g
+       id="g4">
+      <g
+         id="g3"
+         transform="translate(-1.4923894,70.487772)">
+        <rect
+           style="fill:#eb6f92;fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:round"
+           id="rect2"
+           width="32.40593"
+           height="17.762173"
+           x="88.797035"
+           y="69.131142"
+           ry="6.1700158" />
+        <text
+           xml:space="preserve"
+           style="font-size:14.1111px;line-height:1.25;font-family:'TeX Gyre Adventor';-inkscape-font-specification:'TeX Gyre Adventor';text-align:center;text-anchor:middle;white-space:pre-wrap;fill:#191724;fill-opacity:1;stroke-width:0.264583"
+           x="105"
+           y="82.852348"
+           id="text2"><tspan
+             id="tspan2"
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'BlexMono Nerd Font Mono';-inkscape-font-specification:'BlexMono Nerd Font Mono Bold';fill:#191724;fill-opacity:1;stroke-width:0.264583">NaN</tspan></text>
+      </g>
+      <text
+         xml:space="preserve"
+         style="font-size:14.1111px;line-height:1.25;font-family:'TeX Gyre Adventor';-inkscape-font-specification:'TeX Gyre Adventor';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="72.918381"
+         y="153.34012"
+         id="text3"><tspan
+           sodipodi:role="line"
+           id="tspan3"
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'BlexMono Nerd Font Mono';-inkscape-font-specification:'BlexMono Nerd Font Mono Italic';fill:#e0def4;fill-opacity:1;stroke-width:0.264583"
+           x="72.918381"
+           y="153.34012">she</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:14.1111px;line-height:1.25;font-family:'TeX Gyre Adventor';-inkscape-font-specification:'TeX Gyre Adventor';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="142.36595"
+         y="154.04567"
+         id="text3-3"><tspan
+           sodipodi:role="line"
+           id="tspan3-6"
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'BlexMono Nerd Font Mono';-inkscape-font-specification:'BlexMono Nerd Font Mono Italic';fill:#e0def4;fill-opacity:1;stroke-width:0.264583"
+           x="142.36595"
+           y="154.04567">igans</tspan></text>
+    </g>
+  </g>
+</svg>

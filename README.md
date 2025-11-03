@@ -1,5 +1,7 @@
 # How indie YouTubers became industry players
 
+![sheNaNigans](./assets/shenanigans.svg)
+
 > _Analysing duration, uploads, and sponsorship trends over time._
 
 ## Abstract
