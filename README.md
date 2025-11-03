@@ -1,6 +1,7 @@
-# How indie YouTubers became industry players
-
-![sheNaNigans](./assets/shenanigans.svg)
+<h1 align="center">
+    How indie YouTubers became industry players
+    <img src="./assets/shenanigans.svg" alt="sheNaNigans">
+</h1>
 
 > _Analysing duration, uploads, and sponsorship trends over time._
 
