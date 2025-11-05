@@ -4,17 +4,22 @@
     <img src="./assets/shenanigans.svg" alt="sheNaNigans", style="width: 20rem;">
 </h1>
 
-> _Analysing duration, uploads, and sponsorship trends of youtube channels over time._
+> _Analysing upload and sponsorship trends of youtube channels over time._
 
 ## Abstract
 
-Is there a better way to analyse social media professionalisation than the
-YouTube case? On this platform, the creator economy has clearly evolved from
-indie uploads to established businesses. We want to quantify and rigorously
-analyse these patterns.
+At the beginning of YouTube, creators mainly posted for fun - something to 
+share with their friends, or to entertain others. Back then, people didn't
+put much thought into making a living out of it. Fast forward to today, and
+we have every channel competing to get as much viewership for monetization
+and partnering with the biggest sponsors, turning enterntainment into profit.
+Clearly, the creator focus has evolved from entertaining indie content to 
+establishing a profitable brand, which is a fantastic representation of 
+professionalisation on social media. Our goal is to quantify and analyse 
+these evolutional patterns.
 
-This project will investigate the professionalisation of YouTube creators --
-analysing the journey from indie channels to industry-like settings. We will
+This project will thus investigate the professionalisation of YouTube creators -
+analysing the journey from indie channels to industry-like creators. We will
 first focus on temporal patterns in three key creator metrics: **video
 duration**, **upload frequency**, and **engagement (views, likes, comments)**.
 We will then dive into the **professionalisation of indie creators**. Using a
