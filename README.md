@@ -6,7 +6,7 @@
 
 > _Analysing content, upload, and sponsorship trends of youtube channels over time._
 
-## Abstracts
+## Abstract
 
 At the beginning of YouTube, creators mainly posted for fun - something to 
 share with their friends, or to entertain others. Back then, people didn't
