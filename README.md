@@ -117,7 +117,7 @@ that we aim to answer with **reproducible, data-driven methods**.
 - Extract URLs from descriptions for each video, and unshorten shortened URLs.
 - Merge with other datasets, such as labelling certain videos as being sponsored by using SponsorBlock.
 
-### Proffesionalism Analysis
+### Professionalism Analysis
 - #### Temporal analysis:
     - Use time series with moving averages to analyse trends in subscriber counts, views, etc
     - Check how different categories evolved over time.
