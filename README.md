@@ -132,7 +132,7 @@ that we aim to answer with **reproducible, data-driven methods**.
 ### Visualisation
 - Create comparisons between categories and their professionalism traits
 - Temporal trend plots, network graphs between channels, side by side channel comparisons
-- Create a visual story which showcases the evolution
+- Create a visual story which showcases the evolution of the patterns discovered
 
 ## Proposed timeline
 
@@ -159,11 +159,12 @@ gantt
 ## Organisation within the team
 
 - _Ender Sari_:
-
+   - Focus on RQ1 and RQ2
 - _Kalan Walmsley_:
-
+   - Focus on preprocessing and RQ2
 - _Veronika Wannack_:
-
+   - Focus on website creation and story     
 - _Jan Tomasz Juraszek_:
-
+   - Focus on temporal evolution, and RQ3
 - _Danael Robert-Nicoud_:
+   - Focus on RQ1 and RQ3
