@@ -6,7 +6,7 @@
 
 > _Analysing content, upload, and sponsorship trends of youtube channels over time._
 
-## Abstract
+## Abstracts
 
 At the beginning of YouTube, creators mainly posted for fun - something to 
 share with their friends, or to entertain others. Back then, people didn't
@@ -21,11 +21,11 @@ these evolution patterns.
 This project will thus **investigate the professionalisation of YouTube channels** -
 analysing their journey from indie to industry-like creators. Using a large set 
 of [**YouTube data**](https://github.com/epfl-dlab/YouNiverse) spanning from 2005
-to 2019, our first focus will be on **temporal patterns** in three key creator metrics: 
+to 2019, our first step will be on **temporal patterns** in three key creator metrics: 
 *video duration*, *upload frequency*, and *engagement (views, likes, comments)*, 
 in order to get a good first glance into the data, to serve as an introduction.
 
-We will then dive into the **professionalisation of channels**, where we will quantify
+We will then focus on the **professionalisation of channels**, where we will quantify
 ***when*** we can see clear transitions in adopting professional strategies, analyse ***how*** the 
 creators were able to achieve this, and explore the ***effect*** of this on the channels and
 audiences. To achieve this, we identified [**3 main research questions**](#research-questions) 
@@ -33,7 +33,7 @@ that we aim to answer with **reproducible, data-driven methods**.
 
 ## Research Questions
 
-#### 1. How have channels evolved from indie to professional?
+### 1. How have channels evolved from indie to professional?
 
 - What is the **adoption curve** of sponsorships between different categories?
 - When and why do we have a **rise of sponsorships**?
@@ -41,7 +41,7 @@ that we aim to answer with **reproducible, data-driven methods**.
 - Do **different channel sizes** employ **different strategies** (_e.g._
   multiple sponsors, recurring sponsors, brand partnerships)?
 
-#### 2. What enabled indie channels to become professional-minded?
+### 2. What enabled indie channels to become professional-minded?
 
 - At what **subscriber thresholds** do creators start showing **"industry-like"
   patterns** (sponsors, steady uploads, longer videos, higher engagement
@@ -62,7 +62,7 @@ that we aim to answer with **reproducible, data-driven methods**.
   removed**, using the
   [**YouTube API**](https://developers.google.com/youtube/v3)?
 
-#### 3. How does a focus on professionalism affect engagement?
+### 3. How does a focus on professionalism affect engagement?
 
 - Does the **number of views**, **subscriber growth**, **like/dislike ratio**
   change **after the first sponsor** appears? How?
@@ -72,22 +72,23 @@ that we aim to answer with **reproducible, data-driven methods**.
 
 ## Dataset enrichment
 
-- **Sponsor segment analysis**: Use the
-  [**SponsorBlock**](https://github.com/ajayyy/SponsorBlock) crowdsourced
+- #### **Sponsor segment analysis**   
+  Use the [**SponsorBlock**](https://github.com/ajayyy/SponsorBlock) crowdsourced
   dataset of sponsored videos: which videos are labelled as having **in-video
   sponsor segments**, what **kind of segments** are they (self-promotion, ad
   read, _etc._), **when** do the sponsor segments occur?
 
 <!-- prettier-ignore-start -->
 > [!NOTE]
-> Limitations: the crowdsourced dataset started in 2019, thus early videos might
+> *Limitations: the crowdsourced dataset started in 2019, thus early videos might
 > not be labelled. The project consists in a chrome extension, which might
 > attract a tech-savier audience and skew the video topics.
 <!-- prettier-ignore-end -->
 
-- **Unshortening URLs**: many URLs in the dataset correspond to shortened URLs
+- #### **Unshortening URLs**:
+  Many URLs in the dataset correspond to shortened URLs
   (_e.g._ [bit.ly](https://bitly.com/)). We could unshorten these by using `GET`
-  requests and analysing the responses.
+  requests and analysing the responses. That way we have access to nearly all URLs available.
 
 <!-- prettier-ignore-start -->
 > [!NOTE]
@@ -95,7 +96,8 @@ that we aim to answer with **reproducible, data-driven methods**.
 > requests to make and parse.
 <!-- prettier-ignore-end -->
 
-- **Channel and video activity tracking**: check upload activity for all
+- **Channel and video activity tracking**:    
+  Check upload activity for all
   channels and re-query videos to flag active, inactive, deleted, or private
   content using the [**YouTube API**](https://developers.google.com/youtube/v3).
   This would enable comparing of stability between professional and indie
