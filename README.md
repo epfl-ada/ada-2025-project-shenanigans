@@ -111,7 +111,7 @@ that we aim to answer with **reproducible, data-driven methods**.
 
 ## Methods
 
-<!-- TODO -->
+
 
 ## Proposed timeline
 
@@ -127,10 +127,11 @@ gantt
         Research Question 3 : 2025-11-26, 14d
     section website implementation
         Foundations        : 2025-11-5, 7d
-        Add story element  : 2025-11-12, 7d
+        Add temporal analysis  : 2025-11-12, 7d
         Add RQ 1 analysis  : 2025-11-19, 7d
         Add RQ 2 analysis  : 2025-11-26, 7d
         Add RQ 3 analysis  : 2025-12-3, 7d
+        Add story element? : 2025-12-3, 10d
         Finish up          : 2025-12-10, 2025-12-17
 ```
 
