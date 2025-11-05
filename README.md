@@ -103,7 +103,25 @@ audiences. To do this, we identified
 
 ## Methods
 
-<!-- TODO -->
+1- Start with URL vs No-URL by Category and Year
+
+For each category and year, calculate how many videos include at least one external URL compared with those that do not. Visualize these trends over time to see when URL usage begins to increase or accelerate within each category.
+
+2-Classify Monetisation Types
+
+Each URL is labelled by its purpose—affiliate, donation, crowdfunding, store, or other. A hybrid strategy is used: regular expressions for known domains, a LangChain LLM for unclear cases, and manual labelling when needed. Categories can also evolve over time as link usage changes.
+
+3- Analyse Monetised Videos
+
+For each category and year, calculate the share and count of different monetisation types (e.g., Amazon affiliate, other affiliate, donations) and track how these shares grow over time. Plot cumulative adoption curves showing when channels first begin using each type of link.
+
+4-Track Adoption and Professionalisation
+
+Analyse when channels in each category first start using URLs, donations, and affiliate links, and compare adoption timing across channel sizes. Estimate the subscriber and behaviour levels at which consistent uploads and longer videos begin to appear as signs of professionalisation.
+
+5- Assess Impact and Early Signals
+
+Compare views, subscriber growth, and engagement before and after the first monetised link to measure its effect, and analyse early behavioural patterns such as upload rhythm and runtime to see which factors predict upcoming monetisation.  Use the YouTube Data API to see if videos or channels are active, inactive, private, or deleted. For example, removing old videos or adding new external links to earlier uploads can indicate that creators are revising their content and monetisation strategies as they become more professional.
 
 ## Proposed timeline
 

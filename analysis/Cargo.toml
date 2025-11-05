@@ -7,7 +7,7 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace.dependencies]
-charming = { path = "/home/kalankaboom/Desktop/charming/charming" }
+charming = { path = "/home/kalankaboom/Desktop/charming/charming", features=["ssr"] }
 flate2 = "1.1.2"
 serde = { version = "1.0.227", features = ["derive"] }
 serde_json = "1.0.145"
