@@ -3,7 +3,8 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 use charming::{
-    Chart, HtmlRenderer,
+    Chart, ImageRenderer,
+    component::Title,
     element::{Emphasis, ItemStyle, Tooltip, Trigger},
     series::{Pie, PieRoseType},
     theme::Theme,
@@ -179,6 +180,7 @@ fn main() {
                 .collect();
 
             let chart = Chart::new()
+                .title(Title::new().text(*cat_name))
                 .tooltip(Tooltip::new().trigger(Trigger::Item))
                 .series(
                     Pie::new()
@@ -199,9 +201,9 @@ fn main() {
                 );
 
             let mut renderer =
-                HtmlRenderer::new(*cat_name, 1000, 1000).theme(Theme::Dark);
+                ImageRenderer::new(1000, 1000).theme(Theme::Dark);
             renderer
-                .save(&chart, format!("sponsored_domains_{}.html", cat_name))
+                .save(&chart, format!("sponsored_domains_{}.svg", cat_name))
                 .unwrap();
         },
     );
