@@ -4,7 +4,7 @@
     <img src="./assets/shenanigans.svg" alt="sheNaNigans", style="width: 20rem;">
 </h1>
 
-> _Analysing upload and sponsorship trends of youtube channels over time._
+> _Analysing content, upload, and sponsorship trends of youtube channels over time._
 
 ## Abstract
 
@@ -16,19 +16,20 @@ and partnering with the biggest sponsors, turning enterntainment into profit.
 Clearly, the creator focus has evolved from entertaining indie content to 
 establishing a profitable brand, which is a fantastic representation of 
 professionalisation on social media. Our goal is to quantify and analyse 
-these evolutional patterns.
+these evolution patterns.
 
-This project will thus investigate the professionalisation of YouTube creators -
-analysing the journey from indie channels to industry-like creators. We will
-first focus on temporal patterns in three key creator metrics: **video
-duration**, **upload frequency**, and **engagement (views, likes, comments)**.
-We will then dive into the **professionalisation of indie creators**. Using a
-large panel of [**YouTube data**](https://github.com/epfl-dlab/YouNiverse)
-spanning from 2005 to 2019, we will quantify how and when creators adopt
-professional strategies, and what the effects are on their channels and
-audiences. To do this, we identified
-[**3 main research questions**](#research-questions) that we aim to answer with
-**reproducible, data-driven methods**.
+This project will thus **investigate the professionalisation of YouTube channels** -
+analysing their journey from indie to industry-like creators. Using a large set 
+of [**YouTube data**](https://github.com/epfl-dlab/YouNiverse) spanning from 2005
+to 2019, our first focus will be on **temporal patterns** in three key creator metrics: 
+*video duration*, *upload frequency*, and *engagement (views, likes, comments)*, 
+in order to get a good first glance into the data, to serve as an introduction.
+
+We will then dive into the **professionalisation of channels**, where we will quantify
+***when*** we can see clear transitions in adopting professional strategies, analyse ***how*** the 
+creators were able to achieve this, and explore the ***effect*** of this on the channels and
+audiences. To achieve this, we identified [**3 main research questions**](#research-questions) 
+that we aim to answer with **reproducible, data-driven methods**.
 
 ## Research Questions
 
