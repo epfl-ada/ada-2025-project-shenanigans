@@ -124,12 +124,17 @@ that we aim to answer with **reproducible, data-driven methods**.
 -  Sponsorship detection:
   - Map videos that have sponsors using the SponsorBlock labels,
   - Check if URLs contain links to product sale like amazon, or have donation links like paypal/patreon (using text and regex matching)
-  - Combine upload regularity, count and video lengths to indicate if a channel tries to be more professional 
+  - Combine upload regularity, count and video lengths to indicate if a channel tries to be more professional
+  - Use all of the above to define clear metrics that represent proffesional behaviour
   - Use the same methods as for temporal analysis but concerning proffesional traits
+  - Clutering methods to group channels by professionalism traits
+  - Use regression or classification to try to define early indicators of industry-like transitions
+  - Combine the above with the initial temporal analysis to evaluate engagement effects
 
 #### Visualisation
-- Create comparisons between categories, channels, and professionalism traits
-- Temporal trend plots, 
+- Create comparisons between categories and their professionalism traits
+- Temporal trend plots
+- Network graphs between channels
 
 ## Proposed timeline
 
