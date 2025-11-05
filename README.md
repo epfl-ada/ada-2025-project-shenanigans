@@ -141,12 +141,12 @@ gantt
     title sheNANigans ADA Project Timeline
     dateFormat YYYY-MM-DD
     tickInterval 1week
-    section exploration/analysis
+    section Exploration & Analysis
         Temporal Evolution : 2025-11-5, 14d
         Research Question 1 : 2025-11-12, 14d
         Research Question 2 : 2025-11-19, 14d
         Research Question 3 : 2025-11-26, 14d
-    section website implementation
+    section Website implementation
         Foundations        : 2025-11-5, 7d
         Add temporal analysis  : 2025-11-12, 7d
         Add RQ 1 analysis  : 2025-11-19, 7d
