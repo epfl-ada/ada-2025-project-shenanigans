@@ -1,0 +1,842 @@
+import gzip
+import re
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+
+dataset = Path("../dataset")
+path = dataset / "yt_metadata_en.jsonl.gz"
+# config 1 -> Categories:
+target = "Sports"
+# *****************************
+rows = []
+for chunk in pd.read_json(
+    path, lines=True, compression="gzip", chunksize=500_000
+):
+    # handle either a list column 'categories' or a string column 'category'
+    mask = chunk.get("categories", pd.Series([None] * len(chunk))) == target
+    rows.append(chunk.loc[mask])
+
+df_sports = pd.concat(rows, ignore_index=True)
+out_path = Path("sports_yt_metadata_en.jsonl.gz")
+
+with gzip.open(out_path, "wt", encoding="utf-8") as f:
+    df_sports.to_json(f, orient="records", lines=True)
+    path = dataset / "urls.jsonl.gz"
+
+ids = set(df_sports["display_id"].dropna().astype(str).unique().tolist())
+
+rows = []
+for chunk in pd.read_json(
+    path,
+    lines=True,
+    compression="gzip",
+    chunksize=500_000,
+    dtype={"display_id": str},
+):
+    hits = chunk.loc[chunk["display_id"].astype(str).isin(ids)]
+    if not hits.empty:
+        rows.append(hits)
+
+df_sport_urls = pd.concat(rows, ignore_index=True)
+out_path = Path("sports_urls_metadata_en.jsonl.gz")
+
+with gzip.open(out_path, "wt", encoding="utf-8") as f:
+    df_sport_urls.to_json(f, orient="records", lines=True)
+df_sports = pd.read_json("sports_yt_metadata_en.jsonl.gz", lines=True)
+df_sport_urls = pd.read_json("sports_urls_metadata_en.jsonl.gz", lines=True)
+(df_sport_urls.shape[0] / df_sports.shape[0]) * 100
+df_sports_merged = df_sports.merge(df_sport_urls, on="display_id", how="inner")
+df_sports_merged["dt"] = pd.to_datetime(df_sports_merged.upload_date)
+df_sports_merged["year"] = df_sports_merged["dt"].dt.year
+ids = set(df_sports_merged["display_id"].tolist())
+df_sports_notmatched = df_sports.query("display_id not in @ids").reset_index(
+    drop=True
+)
+df_sports_notmatched["dt"] = pd.to_datetime(df_sports_notmatched.upload_date)
+df_sports_notmatched["year"] = df_sports_notmatched["dt"].dt.year
+df_sports_check = df_sports.merge(df_sport_urls, on="display_id", how="left")
+df_sports_check["checker"] = np.where(
+    df_sports_check["urls"].isna() == True, 0, 1
+)
+df_sports_check["dt"] = pd.to_datetime(df_sports_check.upload_date)
+df_sports_check["year"] = df_sports_check["dt"].dt.year
+_AMZ = re.compile(
+    r"(^|\.)amzn\.to$|(^|\.)amazon\.[a-z.]+$", flags=re.IGNORECASE
+)
+
+
+def is_amazon_domain(d: str) -> bool:
+    if not isinstance(d, str):
+        return False
+    return bool(_AMZ.search(d.strip().lower()))
+
+
+df_sports_check["n_amazon_domains"] = df_sports_check["domains"].apply(
+    lambda lst: sum(1 for d in (lst or []) if is_amazon_domain(d))
+)
+
+df_sports_check["has_amazon"] = df_sports_check["n_amazon_domains"] > 0
+
+
+def uniq_preserve(seq):
+    seen = set()
+    out = []
+    for x in seq:
+        if x not in seen:
+            seen.add(x)
+            out.append(x)
+    return out
+
+
+df_sports_check["amazon_domains_unique"] = df_sports_check["domains"].apply(
+    lambda lst: uniq_preserve([d for d in (lst or []) if is_amazon_domain(d)])
+)
+df_sports_check.groupby("year")["checker"].value_counts(
+    normalize=True
+).reset_index()
+# yes-no
+df_sports_check.query("checker==1").groupby("year")["has_amazon"].value_counts(
+    normalize=False
+).reset_index()
+# amazon
+
+# --- base data ---
+rows = [
+    (2008, 0, 14182),
+    (2008, 1, 9146),
+    (2009, 0, 27298),
+    (2009, 1, 18331),
+    (2010, 0, 55015),
+    (2010, 1, 27332),
+    (2011, 0, 85464),
+    (2011, 1, 52083),
+    (2012, 0, 122058),
+    (2012, 1, 97834),
+    (2013, 1, 144904),
+    (2013, 0, 142398),
+    (2014, 1, 179731),
+    (2014, 0, 151105),
+    (2015, 1, 257952),
+    (2015, 0, 177474),
+    (2016, 1, 328519),
+    (2016, 0, 216670),
+    (2017, 1, 437542),
+    (2017, 0, 250360),
+    (2018, 1, 574477),
+    (2018, 0, 287443),
+    (2019, 1, 460439),
+    (2019, 0, 223278),
+]
+df = pd.DataFrame(rows, columns=["year", "has_url", "count"])
+pivot = (
+    df.pivot_table(
+        index="year", columns="has_url", values="count", aggfunc="sum"
+    )
+    .fillna(0)
+    .astype(int)
+    .rename(columns={0: "No URL", 1: "Has URL"})
+    .sort_index()
+)
+pivot["Total"] = pivot["No URL"] + pivot["Has URL"]
+
+years = pivot.index.to_numpy()
+totals = pivot["Total"].to_numpy()
+no_counts = pivot["No URL"].to_numpy()
+yes_counts = pivot["Has URL"].to_numpy()
+
+# --- amazon subset ONLY within Has URL ---
+subset_rows = [
+    (2008, True, 63),
+    (2009, False, 18122),
+    (2009, True, 209),
+    (2010, False, 26849),
+    (2010, True, 483),
+    (2011, False, 50784),
+    (2011, True, 1299),
+    (2012, False, 95457),
+    (2012, True, 2377),
+    (2013, False, 141561),
+    (2013, True, 3343),
+    (2014, False, 177382),
+    (2014, True, 2349),
+    (2015, False, 253933),
+    (2015, True, 4019),
+    (2016, False, 322214),
+    (2016, True, 6305),
+    (2017, False, 423475),
+    (2017, True, 14067),
+    (2018, False, 552768),
+    (2018, True, 21709),
+    (2019, False, 442737),
+    (2019, True, 17702),
+]
+
+
+subdf = pd.DataFrame(subset_rows, columns=["year", "is_url", "value"])
+amazon_url = {
+    y: int(v)
+    for y, v in subdf[subdf["is_url"] == True][["year", "value"]].values
+}
+
+# --- axes ---
+xmin, xmax = years.min() - 0.6, years.max() + 0.6
+ymin, ymax = 0, float(totals.max()) * 1.15
+
+# --- normalized sizes ---
+tmax = float(totals.max())
+scale = np.sqrt(totals / (tmax + 1e-9))
+
+rx_base_min, rx_base_max = 0.28, 0.60
+ry_base_min, ry_base_max = (ymax - ymin) * 0.018, (ymax - ymin) * 0.090
+rx = rx_base_min + (rx_base_max - rx_base_min) * scale
+ry = ry_base_min + (ry_base_max - ry_base_min) * scale
+
+size_min, size_max = 5, 18
+dot_size = size_min + (size_max - size_min) * scale
+
+DARK_GREEN = "#1b5e20"  # Has URL
+PURPLE = "#8e44ad"  # Not URL
+ORANGE = "#f39c12"  # Amazon within Has URL
+
+
+def fan_points_outer_orange(
+    cx,
+    cy,
+    rx,
+    ry,
+    share_url,
+    amazon_share_in_url,
+    base_dot,
+    n_rings=7,
+    dots_per_ring=16,
+):
+    ring_ms = []
+    for ring in range(n_rings):
+        r_frac = (ring + 1) / n_rings
+        m = int(dots_per_ring * (1 + 0.25 * r_frac))
+        ring_ms.append((r_frac, m))
+    total_url_dots = sum(int(round(share_url * m)) for _, m in ring_ms)
+    r_outer, m_outer = ring_ms[-1]
+    url_outer = int(round(share_url * m_outer))
+    desired_orange = int(round(amazon_share_in_url * total_url_dots))
+    k_orange_outer = min(max(desired_orange, 0), url_outer)
+
+    ox, oy, os = [], [], []
+    gx, gy, gs = [], [], []
+    px, py, ps = [], [], []
+
+    for idx_ring, (r_frac, m) in enumerate(ring_ms):
+        thetas = np.linspace(np.pi, 0, m, endpoint=True)
+        ring_size = base_dot * (1.10 - 0.65 * r_frac)
+        k_url = int(round(share_url * m))
+
+        for j, theta in enumerate(thetas):
+            x = cx + rx * r_frac * np.cos(theta)
+            y = cy + ry * r_frac * np.sin(theta)
+            s = max(ring_size, 2.5)
+
+            if j < k_url:
+                if idx_ring == n_rings - 1 and j < k_orange_outer:
+                    ox.append(x)
+                    oy.append(y)
+                    os.append(s * 1.2)
+                else:
+                    gx.append(x)
+                    gy.append(y)
+                    gs.append(s)
+            else:
+                px.append(x)
+                py.append(y)
+                ps.append(s)
+
+    return (
+        np.array(ox),
+        np.array(oy),
+        np.array(os),
+        np.array(gx),
+        np.array(gy),
+        np.array(gs),
+        np.array(px),
+        np.array(py),
+        np.array(ps),
+    )
+
+
+# --- build figure ---
+fig = go.Figure()
+
+hover_texts = []
+for y, total, n0, n1 in zip(years, totals, no_counts, yes_counts):
+    yes_pct = 100.0 * n1 / total
+    no_pct = 100.0 * n0 / total
+    a_url = amazon_url.get(int(y), 0)
+    a_pct_in_url = (a_url / n1 * 100) if n1 > 0 else 0.0
+    hover_texts.append(
+        f"<b>Year:</b> {y}<br>"
+        f"<b>Total videos:</b> <b>{total:,}</b><br>"
+        f"<span style='color:white'><b>Has URL:</b> <b>{n1:,}</b> ({yes_pct:.1f}%)</span><br>"
+        f"<span style='color:white'><b>Not URL:</b> <b>{n0:,}</b> ({no_pct:.1f}%)</span><br>"
+        f"<span style='color:white'><b>Amazon within Has URL:</b> <b>{a_url:,}</b> ({a_pct_in_url:.2f}%)</span>"
+    )
+
+fig.add_trace(
+    go.Scatter(
+        x=years,
+        y=totals,
+        mode="markers",
+        marker=dict(size=8, color="rgba(0,0,0,0)"),
+        hovertext=hover_texts,
+        hoverinfo="text",
+        showlegend=False,
+    )
+)
+
+for cx, cy, rx_i, ry_i, n1, n0, total, s_i in zip(
+    years, totals, rx, ry, yes_counts, no_counts, totals, dot_size
+):
+    share_url = n1 / total if total else 0.0
+    amazon_count = amazon_url.get(int(cx), 0)
+    amazon_share_in_url = min(amazon_count / n1, 1.0) if n1 > 0 else 0.0
+
+    Ox, Oy, Os, Gx, Gy, Gs, Px, Py, Ps = fan_points_outer_orange(
+        cx,
+        cy,
+        rx_i,
+        ry_i,
+        share_url=share_url,
+        amazon_share_in_url=amazon_share_in_url,
+        base_dot=float(s_i),
+        n_rings=7,
+        dots_per_ring=16,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=Gx,
+            y=Gy,
+            mode="markers",
+            marker=dict(size=Gs, color=DARK_GREEN, line=dict(width=0)),
+            hoverinfo="skip",
+            showlegend=False,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=Px,
+            y=Py,
+            mode="markers",
+            marker=dict(size=Ps, color=PURPLE, line=dict(width=0)),
+            hoverinfo="skip",
+            showlegend=False,
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=Ox,
+            y=Oy,
+            mode="markers",
+            marker=dict(
+                size=Os, color="#f39c12", line=dict(width=1, color="white")
+            ),
+            hoverinfo="skip",
+            showlegend=False,
+        )
+    )
+
+# Left-aligned title + multi-line italic subhead
+title_text = (
+    "Sports category videos over time: totals, URL share, and Amazon-within-URL"
+)
+sub_lines = [
+    "Each cluster sits at (year, total videos).",
+    "Dark green = videos with URLs; purple = without URLs.",
+    "Within the URL dots, the orange outer ring highlights Amazon links.",
+    "Cluster growth shows rising video counts; URL share grows over time.",
+]
+subhead_html = "<br>".join(f"<em>{line}</em>" for line in sub_lines)
+
+fig.update_layout(
+    title={
+        "text": f"{title_text}<br>{subhead_html}",
+        "x": 0.0,
+        "xanchor": "left",
+    },
+    xaxis_title="Year",
+    yaxis_title="Number of videos",
+    template="plotly_white",
+    xaxis=dict(range=[xmin, xmax], tickmode="linear", dtick=1),
+    yaxis=dict(range=[ymin, ymax], separatethousands=True),
+    margin=dict(l=70, r=40, t=130, b=50),
+)
+
+out_path = dataset / "xy_radial_fans_left_aligned_multiline.html"
+fig.write_html(out_path, include_plotlyjs="cdn", full_html=True)
+out_path
+
+import json
+from textwrap import dedent
+
+amazon_rows = [
+    (2008, False, 9083),
+    (2008, True, 63),
+    (2009, False, 18122),
+    (2009, True, 209),
+    (2010, False, 26849),
+    (2010, True, 483),
+    (2011, False, 50784),
+    (2011, True, 1299),
+    (2012, False, 95457),
+    (2012, True, 2377),
+    (2013, False, 141561),
+    (2013, True, 3343),
+    (2014, False, 177382),
+    (2014, True, 2349),
+    (2015, False, 253933),
+    (2015, True, 4019),
+    (2016, False, 322214),
+    (2016, True, 6305),
+    (2017, False, 423475),
+    (2017, True, 14067),
+    (2018, False, 552768),
+    (2018, True, 21709),
+    (2019, False, 442737),
+    (2019, True, 17702),
+]
+yes_no_rows = [
+    (2008, 9146, 14182),
+    (2009, 18331, 27298),
+    (2010, 27332, 55015),
+    (2011, 52083, 85464),
+    (2012, 97834, 122058),
+    (2013, 144904, 142398),
+    (2014, 179731, 151105),
+    (2015, 257952, 177474),
+    (2016, 328519, 216670),
+    (2017, 437542, 250360),
+    (2018, 574477, 287443),
+    (2019, 460439, 223278),
+]
+
+amz_true = {y: cnt for (y, is_amz, cnt) in amazon_rows if is_amz}
+
+UNIT = 8_000
+items = []
+for y, yes, no in yes_no_rows:
+    total = yes + no
+    amz = min(amz_true.get(y, 0), yes)
+    url_pct = 100 * yes / total if total else 0.0
+    amz_pct_abs = 100 * amz / total if total else 0.0
+    coins = (total + UNIT - 1) // UNIT
+    items.append(
+        {
+            "year": y,
+            "total": total,
+            "yes": yes,
+            "no": no,
+            "amz": amz,
+            "url_pct": url_pct,
+            "amz_pct_abs": amz_pct_abs,
+            "coins": int(coins),
+            "units_url": yes / UNIT,
+            "units_amz": amz / UNIT,
+        }
+    )
+
+DATA_JSON = json.dumps(items)
+
+html = f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sports Category — Synchronized Panels & Plots (+ counting texts & totals)</title>
+<style>
+  :root{{
+    --bg:#0e1630; --text:#e8eefb; --muted:#a9b5d9; --edge:#1b1f2f;
+    --url:#2ecc71; --no:#ffffff; --amz:#f59e0b; --grayline:#6b7280;
+    --coin:18px; --gap:6px; --panel-gap:14px;
+    --step:1100ms;
+  }}
+  *{{box-sizing:border-box}} html,body{{height:100%}}
+  body{{ margin:0; background:var(--bg); color:var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        display:flex; justify-content:center; }}
+  .wrap{{ width:min(1200px, 98vw); padding:20px 14px 26px; }}
+  h1{{ font-size:24px; font-weight:800; margin:0; letter-spacing:.4px; }}
+  .subtitle{{ color:var(--muted); font-size:13px; margin:6px 0 12px; opacity:.9; }}
+
+  .controls{{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom: 10px; }}
+  .btn{{ padding:7px 10px; border-radius:12px; border:1px solid #2b3553; background:#121a38; color:var(--text); cursor:pointer; }}
+  .hint{{ margin-left:auto; color:var(--muted); font-size:12px; opacity:.95; }}
+
+  .grid-all{{ display:grid; grid-template-columns: repeat(4, 1fr); gap: var(--panel-gap); align-items:start; }}
+  .chart-card{{ grid-column: 1 / -1;
+               background: radial-gradient(900px 380px at -10% 110%, rgba(255,255,255,.06), transparent 60%);
+               box-shadow: 0 10px 30px rgba(0,0,0,.18) inset; border-radius:16px; padding:12px 14px; }}
+  .chart-title{{ font-size:14px; color:var(--muted); margin-bottom:6px; display:flex; gap:10px; align-items:center; }}
+  .chart{{ width:100%; height:260px; }}
+  .chart.small{{ height:220px; }}
+
+  .axis line, .axis path{{ stroke:#41507a; }}
+  .axis text{{ fill:#cfd8f3; font-size:10px; }}
+
+  .line.gray{{ fill:none; stroke:var(--grayline); stroke-width:1.6; stroke-linecap:round; opacity:.85; }}
+  .ball{{ opacity:0; transform: translateY(6px) scale(.85); transition: transform .3s ease, opacity .3s ease; user-select:none; }}
+  .ball.on{{ opacity:1; transform: translateY(0) scale(1); }}
+
+  .line.amz{{ fill:none; stroke:var(--amz); stroke-width:2.4; stroke-linecap:round; }}
+  .dot.amz{{ fill:var(--amz); stroke:#7a3d00; stroke-width:1.0; opacity:0; transition: opacity .3s; }}
+  .dot.amz.on{{ opacity:1; }}
+
+  .panel{{
+    background: radial-gradient(900px 380px at -10% 110%, rgba(255,255,255,.06), transparent 60%);
+    box-shadow: 0 10px 30px rgba(0,0,0,.18) inset;
+    border-radius:14px; padding:10px 12px; min-height: 140px;
+    transition: box-shadow .25s ease;
+  }}
+  .panel.active{{ box-shadow: 0 0 0 2px rgba(167,139,250,.6), 0 0 18px rgba(167,139,250,.35) inset; }}
+
+  .p-head{{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; }}
+  .year{{ font-weight:900; font-size:18px; letter-spacing:.4px; }}
+  .meta{{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }}
+  .row{{ font-size:12px; }}
+  .row .urlc{{ color: var(--url); font-weight:700; }}
+  .row .amzc{{ color: var(--amz); font-weight:700; }}
+
+  .grid{{ display:grid; grid-template-columns: repeat(10, var(--coin)); grid-auto-rows: var(--coin); gap: var(--gap); place-items:center; }}
+
+  .coin{{ width:var(--coin); height:var(--coin); }}
+  .coin svg .rim{{ stroke:var(--edge); stroke-width:1.0; fill:var(--no); }}
+  .coin svg .shine{{ fill:rgba(255,255,255,.12); }}
+  .coin svg .dollar{{ fill:#0e1630; opacity:.9; font-weight:700; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size:56px; }}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Sports Category</h1>
+    <div class="subtitle">YouTube Sports videos (2008–2019). Panels show totals per year; top plot shows share with any URL; bottom plot shows share with Amazon links. Derived from your df_sports + URL parsing.</div>
+
+    <div class="controls">
+      <button id="play" class="btn">Play ▶</button>
+      <button id="pause" class="btn">Pause ⏸</button>
+      <button id="restart" class="btn">Restart ↺</button>
+      <div class="hint">1 coin = 8,000 videos</div>
+    </div>
+
+    <div class="grid-all">
+      <!-- Top: URL% -->
+      <div class="chart-card">
+        <div class="chart-title">Percentage of videos with URLs</div>
+        <svg id="chart_url" class="chart"></svg>
+      </div>
+
+      <!-- Middle: Panels with Coins -->
+      <div id="panels" style="grid-column: 1 / -1; display:grid; grid-template-columns: repeat(4, 1fr); gap: 14px;"></div>
+
+      <!-- Bottom: Amazon% -->
+      <div class="chart-card">
+        <div class="chart-title">Percentage of videos containing Amazon links</div>
+        <svg id="chart_amz" class="chart small"></svg>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const ITEMS = {DATA_JSON};
+  const STEP = 1100; // ms per year
+
+  function coinSVG(uid){{
+    return `
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <clipPath id="clip_url_${{uid}}" clipPathUnits="objectBoundingBox">
+            <rect id="rect_url_${{uid}}" x="0" y="0" width="0" height="1"></rect>
+          </clipPath>
+          <clipPath id="clip_amz_${{uid}}" clipPathUnits="objectBoundingBox">
+            <rect id="rect_amz_${{uid}}" x="0" y="0" width="0" height="1"></rect>
+          </clipPath>
+        </defs>
+        <!-- Base gray coin -->
+        <circle class="rim" cx="50" cy="50" r="47"></circle>
+        <ellipse class="shine" cx="38" cy="30" rx="18" ry="10"/>
+        <!-- URL overlay (green) -->
+        <g class="url" clip-path="url(#clip_url_${{uid}})">
+          <circle cx="50" cy="50" r="47" fill="var(--url)"></circle>
+          <ellipse class="shine" cx="38" cy="30" rx="18" ry="10"/>
+          <text class="dollar" x="50" y="62" text-anchor="middle">$</text>
+        </g>
+        <!-- Amazon overlay (orange) -->
+        <g class="amz" clip-path="url(#clip_amz_${{uid}})">
+          <circle cx="50" cy="50" r="47" fill="var(--amz)"></circle>
+          <ellipse class="shine" cx="38" cy="30" rx="18" ry="10"/>
+          <text class="dollar" x="50" y="62" text-anchor="middle">$</text>
+        </g>
+      </svg>`;
+  }}
+
+  function buildPanels(){{
+    const panelsEl = document.getElementById('panels');
+    panelsEl.innerHTML = ITEMS.map((it, idx) => {{
+      const totalTxt = `<span class="totalc" data-target="${{it.total}}">0</span> videos`;
+      const urlTxt = `<span class="urlc" data-target="${{it.url_pct.toFixed(1)}}" data-dec="1">0.0% URL</span>`;
+      const amzTxt = `<span class="amzc" data-target="${{it.amz_pct_abs.toFixed(2)}}" data-dec="2">0.00% Amazon</span>`;
+      const coins = it.coins;
+      let coinsHTML = '';
+      for(let i=0;i<coins;i++){{
+        const uid = `${{idx}}_${{i}}`;
+        coinsHTML += `<div class="coin" data-uid="${{uid}}">${{coinSVG(uid)}}</div>`;
+      }}
+      return `
+        <div class="panel" data-year="${{it.year}}" data-idx="${{idx}}" data-coins="${{coins}}">
+          <div class="p-head">
+            <div class="year">${{it.year}}</div>
+            <div class="meta">
+              <div class="row">${{totalTxt}}</div>
+              <div class="row">${{urlTxt}}</div>
+              <div class="row">${{amzTxt}}</div>
+            </div>
+          </div>
+          <div class="grid">${{coinsHTML}}</div>
+        </div>`;
+    }}).join('');
+  }}
+
+  function sizeMap(val, vmin, vmax, pmin, pmax){{
+    if(vmax === vmin) return (pmin + pmax)/2;
+    const t = (val - vmin) / (vmax - vmin);
+    return pmin + t*(pmax - pmin);
+  }}
+
+  function buildURLChart(){{
+    const svg = document.getElementById('chart_url');
+    const bounds = svg.getBoundingClientRect();
+    const w = Math.max(700, Math.floor(bounds.width));
+    const h = Math.max(260, Math.floor(bounds.height));
+    svg.setAttribute('viewBox', `0 0 ${{w}} ${{h}}`);
+    svg.innerHTML = '';
+    const m = {{t:18, r:16, b:28, l:40}};
+    const iw = w - m.l - m.r, ih = h - m.t - m.b;
+
+    const xs = ITEMS.map(d=>d.year);
+    const ys = ITEMS.map(d=>d.url_pct);
+    const xmin = Math.min(...xs), xmax = Math.max(...xs);
+    const ymin = 32, ymax = Math.ceil(Math.max(...ys)/5)*5;
+    const X = year => m.l + ((year - xmin) / (xmax - xmin)) * iw;
+    const Y = val  => m.t + ih - ((val - ymin) / (ymax - ymin)) * ih;
+
+    // axes
+    const gx = document.createElementNS('http://www.w3.org/2000/svg','g'); gx.setAttribute('class','axis');
+    for(let yr = xmin; yr <= xmax; yr+=1){{
+      const x = X(yr);
+      gx.insertAdjacentHTML('beforeend', `<line x1="${{x}}" y1="${{m.t+ih}}" x2="${{x}}" y2="${{m.t+ih+4}}" />`);
+      gx.insertAdjacentHTML('beforeend', `<text x="${{x}}" y="${{m.t+ih+18}}" text-anchor="middle">${{yr}}</text>`);
+    }}
+    const gy = document.createElementNS('http://www.w3.org/2000/svg','g'); gy.setAttribute('class','axis');
+    for(let v=ymin; v<=ymax; v+=5){{
+      const y = Y(v);
+      gy.insertAdjacentHTML('beforeend', `<line x1="${{m.l-4}}" y1="${{y}}" x2="${{m.l}}" y2="${{y}}" />`);
+      gy.insertAdjacentHTML('beforeend', `<text x="${{m.l-6}}" y="${{y+3}}" text-anchor="end">${{v}}%</text>`);
+    }}
+    svg.appendChild(gx); svg.appendChild(gy);
+
+    // gray line
+    const pts = xs.map((yr,i)=>`${{X(yr)}},${{Y(ys[i])}}`).join(' ');
+    const path = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    path.setAttribute('points', pts); path.setAttribute('class','line gray'); svg.appendChild(path);
+    const L = path.getTotalLength ? path.getTotalLength() : 0;
+    if(L){{ path.style.strokeDasharray = L; path.style.strokeDashoffset = L; path.dataset.totalLen = L; }}
+
+    // balls
+    const minPct = Math.min(...ys), maxPct = Math.max(...ys);
+    xs.forEach((yr, i)=>{{
+      const x = X(yr), y = Y(ys[i]);
+      const fontSize = sizeMap(ys[i], minPct, maxPct, 16, 28);
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', x); t.setAttribute('y', y+6); t.setAttribute('text-anchor','middle');
+      t.setAttribute('class', 'ball'); t.setAttribute('data-idx', i);
+      t.setAttribute('style', `font-size:${{fontSize}}px;`);
+      t.textContent = '⚽';
+      svg.appendChild(t);
+    }});
+  }}
+
+  function buildAMZChart(){{
+    const svg = document.getElementById('chart_amz');
+    const bounds = svg.getBoundingClientRect();
+    const w = Math.max(700, Math.floor(bounds.width));
+    const h = Math.max(220, Math.floor(bounds.height));
+    svg.setAttribute('viewBox', `0 0 ${{w}} ${{h}}`);
+    svg.innerHTML = '';
+    const m = {{t:18, r:16, b:28, l:40}};
+    const iw = w - m.l - m.r, ih = h - m.t - m.b;
+
+    const xs = ITEMS.map(d=>d.year);
+    const ys = ITEMS.map(d=>d.amz_pct_abs);
+
+    const xmin = Math.min(...xs), xmax = Math.max(...xs);
+    const ymin = 0, ymax = 3;
+    const X = year => m.l + ((year - xmin) / (xmax - xmin)) * iw;
+    const Y = val  => m.t + ih - ((val - ymin) / (ymax - ymin)) * ih;
+
+    // axes
+    const gx = document.createElementNS('http://www.w3.org/2000/svg','g'); gx.setAttribute('class','axis');
+    for(let yr = xmin; yr <= xmax; yr+=1){{
+      const x = X(yr);
+      gx.insertAdjacentHTML('beforeend', `<line x1="${{x}}" y1="${{m.t+ih}}" x2="${{x}}" y2="${{m.t+ih+4}}" />`);
+      gx.insertAdjacentHTML('beforeend', `<text x="${{x}}" y="${{m.t+ih+18}}" text-anchor="middle">${{yr}}</text>`);
+    }}
+    const gy = document.createElementNS('http://www.w3.org/2000/svg','g'); gy.setAttribute('class','axis');
+    for(let v=ymin; v<=ymax; v+=0.5){{
+      const y = Y(v);
+      gy.insertAdjacentHTML('beforeend', `<line x1="${{m.l-4}}" y1="${{y}}" x2="${{m.l}}" y2="${{y}}" />`);
+      gy.insertAdjacentHTML('beforeend', `<text x="${{m.l-6}}" y="${{y+3}}" text-anchor="end">${{v.toFixed(1)}}%</text>`);
+    }}
+    svg.appendChild(gx); svg.appendChild(gy);
+
+    // line
+    const pts = xs.map((yr,i)=>`${{X(yr)}},${{Y(ys[i])}}`).join(' ');
+    const path = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    path.setAttribute('points', pts); path.setAttribute('class','line amz'); svg.appendChild(path);
+    const L = path.getTotalLength ? path.getTotalLength() : 0;
+    if(L){{ path.style.strokeDasharray = L; path.style.strokeDashoffset = L; path.dataset.totalLen = L; }}
+
+    // dots
+    xs.forEach((yr,i)=>{{
+      const cx = X(yr), cy = Y(ys[i]);
+      const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('cx', cx); dot.setAttribute('cy', cy); dot.setAttribute('r', 3.6);
+      dot.setAttribute('class', 'dot amz'); dot.setAttribute('data-idx', i); svg.appendChild(dot);
+    }});
+  }}
+
+  function tweenNumber(el, target, decimals, duration){{
+    const start = performance.now();
+    const from = 0;
+    function fmt(v){{ return Number(v).toFixed(decimals); }}
+    function step(now){{
+      const t = Math.min(1, (now - start) / duration);
+      const val = from + t * (target - from);
+      const suffix = el.classList.contains('urlc') ? '% URL' : '% Amazon';
+      el.textContent = `${{fmt(val)}}${{suffix}}`;
+      if(t < 1){{ requestAnimationFrame(step); }}
+    }}
+    requestAnimationFrame(step);
+  }}
+  function tweenInt(el, target, duration){{
+    const start = performance.now();
+    const from = 0;
+    function step(now){{
+      const t = Math.min(1, (now - start) / duration);
+      const val = Math.round(from + t * (target - from));
+      el.textContent = val.toLocaleString();
+      if(t < 1){{ requestAnimationFrame(step); }}
+    }}
+    requestAnimationFrame(step);
+  }}
+
+  function resetAll(){{
+    const urlPath = document.querySelector('#chart_url .line.gray');
+    if(urlPath && urlPath.getTotalLength){{ const L = urlPath.getTotalLength(); urlPath.style.transition='none'; urlPath.style.strokeDasharray=L; urlPath.style.strokeDashoffset=L; }}
+    document.querySelectorAll('#chart_url .ball').forEach(b=>b.classList.remove('on'));
+    const amzPath = document.querySelector('#chart_amz .line.amz');
+    if(amzPath && amzPath.getTotalLength){{ const L2 = amzPath.getTotalLength(); amzPath.style.transition='none'; amzPath.style.strokeDasharray=L2; amzPath.style.strokeDashoffset=L2; }}
+    document.querySelectorAll('#chart_amz .dot.amz').forEach(d=>d.classList.remove('on'));
+    document.querySelectorAll('[id^="rect_url_"], [id^="rect_amz_"]').forEach(r => r.setAttribute('width','0'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.panel .totalc').forEach(el=> el.textContent = '0');
+    document.querySelectorAll('.panel .urlc').forEach(el=> el.textContent = '0.0% URL');
+    document.querySelectorAll('.panel .amzc').forEach(el=> el.textContent = '0.00% Amazon');
+  }}
+
+  function animateChartsTo(index){{
+    const duration = 1100 - 150;
+    const urlSvg = document.getElementById('chart_url');
+    const urlPath = urlSvg.querySelector('.line.gray');
+    const L = parseFloat(urlPath?.getTotalLength() || '0');
+    if(L){{
+      const frac = (index+1) / ITEMS.length;
+      urlPath.style.transition = `stroke-dashoffset ${{duration}}ms cubic-bezier(.2,.65,.2,1)`;
+      urlPath.style.strokeDashoffset = L * (1 - frac);
+    }}
+    const ball = urlSvg.querySelector(`.ball[data-idx="${{index}}"]`);
+    if(ball) ball.classList.add('on');
+    const amzSvg = document.getElementById('chart_amz');
+    const amzPath = amzSvg.querySelector('.line.amz');
+    const L2 = parseFloat(amzPath?.getTotalLength() || '0');
+    if(L2){{
+      const frac2 = (index+1) / ITEMS.length;
+      amzPath.style.transition = `stroke-dashoffset ${{duration}}ms cubic-bezier(.2,.65,.2,1)`;
+      amzPath.style.strokeDashoffset = L2 * (1 - frac2);
+    }}
+    const dot = amzSvg.querySelector(`.dot.amz[data-idx="${{index}}"]`);
+    if(dot) dot.classList.add('on');
+  }}
+
+  function fillCoinsForIndex(index){{
+    const panel = document.querySelector(`.panel[data-idx="${{index}}"]`);
+    if(!panel) return;
+    panel.classList.add('active');
+    const year = parseInt(panel.getAttribute('data-year'));
+    const rec = ITEMS.find(it => it.year === year);
+    const units_url = rec.units_url, units_amz = rec.units_amz;
+    const coins = Array.from(panel.querySelectorAll('.coin'));
+    coins.forEach(c => {{
+      const uid = c.getAttribute('data-uid');
+      document.getElementById('rect_url_' + uid).setAttribute('width', '0');
+      document.getElementById('rect_amz_' + uid).setAttribute('width', '0');
+    }});
+    const N = coins.length || 1;
+    const duration = 1100 - 250;
+    const delayPer = Math.max(8, Math.floor(duration / N));
+    coins.forEach((c, i)=>{{
+      const uid = c.getAttribute('data-uid');
+      const urlW = Math.max(0, Math.min(1, units_url - i));
+      const amzW = Math.max(0, Math.min(1, units_amz - i));
+      setTimeout(()=>{{ document.getElementById('rect_url_' + uid).setAttribute('width', String(urlW)); }}, i*delayPer);
+      setTimeout(()=>{{ document.getElementById('rect_amz_' + uid).setAttribute('width', String(amzW)); }}, i*delayPer + Math.min(120, delayPer));
+    }});
+    // Counters in sync
+    const totalEl = panel.querySelector('.totalc');
+    const urlEl = panel.querySelector('.urlc');
+    const amzEl = panel.querySelector('.amzc');
+    const totalTarget = parseInt(totalEl.getAttribute('data-target'), 10);
+    const urlTarget = parseFloat(urlEl.getAttribute('data-target'));
+    const amzTarget = parseFloat(amzEl.getAttribute('data-target'));
+    tweenInt(totalEl, totalTarget, duration);
+    tweenNumber(urlEl, urlTarget, 1, duration);
+    tweenNumber(amzEl, amzTarget, 2, duration);
+  }}
+
+  function playSequence(){{
+    resetAll();
+    let base = 250;
+    for(let i=0;i<ITEMS.length;i++){{ 
+      setTimeout(((ii)=>()=>{{
+        fillCoinsForIndex(ii);
+        animateChartsTo(ii);
+      }})(i), base);
+      base += 1100;
+    }}
+  }}
+
+  function init(){{
+    buildPanels();
+    buildURLChart();
+    buildAMZChart();
+    playSequence();
+  }}
+
+  document.addEventListener('DOMContentLoaded', init);
+  document.getElementById('play').addEventListener('click', ()=>{{ playSequence(); }});
+  document.getElementById('pause').addEventListener('click', ()=>{{ /* placeholder */ }});
+  document.getElementById('restart').addEventListener('click', ()=>{{ playSequence(); }});
+  window.addEventListener('resize', ()=>{{ buildURLChart(); buildAMZChart(); playSequence(); }});
+</script>
+</body>
+</html>
+"""
+
+out_path = dataset / "sports_synced_panels_plots_animated_texts_totals.html"
+with open(out_path, "w", encoding="utf-8") as f:
+    f.write(html)

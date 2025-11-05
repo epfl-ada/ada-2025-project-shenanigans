@@ -1,0 +1,245 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body { 
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+  top: -250px;
+  right: -250px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  bottom: -200px;
+  left: -200px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#header {
+  text-align: center;
+  padding: 40px 40px 30px;
+  color: white;
+  z-index: 1;
+  position: relative;
+}
+
+.accent-line {
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, #d4af37 0%, #f4d03f 100%);
+  margin: 0 auto 2rem;
+}
+
+#header h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 12px;
+  color: #ffffff;
+  letter-spacing: -1px;
+}
+
+#header p {
+  font-size: 1.1rem;
+  color: #999;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+#main-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 40px 20px;
+  overflow-y: auto;
+  z-index: 1;
+  position: relative;
+}
+
+#chart-container {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 16px;
+  padding: 40px 50px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  width: 100%;
+  max-width: 1400px;
+  margin-bottom: 280px;
+}
+
+.bar {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.bar:hover {
+  opacity: 0.8;
+}
+
+.bar-value {
+  font-size: 11px;
+  fill: #aaa;
+  font-weight: 500;
+}
+
+.axis text {
+  font-size: 1rem;
+  fill: #aaa; 
+}
+
+.axis path,
+.axis line {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+
+#controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 15px 30px 20px;
+  box-shadow: 0 -5px 30px rgba(212, 175, 55, 0.1);
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  z-index: 1000;
+}
+
+#slider-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#year-display {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#year-label {
+  font-size: 3cqb;
+  font-weight: 900;
+  background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+#slider {
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  background: rgba(212, 175, 55, 0.2);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+#slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37, #f4d03f);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.5);
+  transition: all 0.2s;
+}
+
+#slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.7);
+}
+
+.year-marks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 30px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ccc;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+#stats {
+  font-size: 3rem;
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  flex-wrap: wrap;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #d4af37, #f4d03f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  #header h1 { font-size: 2rem; }
+  #header p { font-size: 0.95rem; }
+  #year-label { font-size: 2.5rem; }
+  .stat-value { font-size: 1.5rem; }
+  #chart-container { padding: 25px 30px; }
+}

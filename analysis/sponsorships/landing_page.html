@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BECOME A YOUTUBE MILLIONAIRE</title>
+    <link rel="stylesheet" href="landing_page.css">
+
+    
+</head>
+<body>
+    <section class="hero" id="hero">
+        <h1>🔥 WANT TO MAKE A LIVING<br>ON YOUTUBE? 🔥</h1>
+        <h2>Learn the SECRETS the Algorithm Doesn't Want You to Know!</h2>
+        
+        <div class="price-tag">
+            <span class="strikethrough">$9,999</span>
+            <div>$9998 (WOW!!!)</div>
+        </div>
+
+        <div class="benefits">
+            <div class="benefit">
+                <h3>Premium Course Access</h3>
+                <p>47 hours of content you could find free on YouTube</p>
+            </div>
+            <div class="benefit">
+                <h3>Guaranteed Growth*</h3>
+                <p>*Results not guaranteed. Individual results may vary. </p>
+            </div>
+            <div class="benefit">
+                <h3>Secret Strategies</h3>
+                <p>Like: "Upload consistently" and "Make good thumbnails"</p>
+            </div>
+            <div class="benefit">
+                <h3>Passive Income</h3>
+                <p>After working 80 hours a week for 3 years</p>
+            </div>
+        </div>
+
+        <button class="cta-button" onclick="openModal()">
+            💳 YES! TAKE MY MONEY! 💳
+        </button>
+
+        <p style="margin-top: 2rem; font-size: 0.8rem; opacity: 0.5;">
+            LIMITED TIME OFFER! 
+        </p>
+    </section>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 style="margin-bottom: 1rem; text-align: center; color: #ff0080;">
+                Secure Checkout 🔒
+            </h2>
+            
+            <div class="disclaimer">
+                <strong>P.S.</strong> We did not spend much money on verification methods. any numbers will probably work...
+            </div>
+            
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label>Card Number</label>
+                    <input type="text" id="cardNumber" placeholder="........................ hehe..." value="">
+                </div>
+                
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="cardName" placeholder="ur name lol" value="">
+                </div>
+                
+                <button type="button" class="checkout-btn" onclick="processPayment()">
+                    PAY $9998 NOW
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <section class="revelation" id="revelation">
+        <div class="accent-line"></div>
+        <h2> TITLE TITLE <br>TITLEEE</h2>
+        <h3>SUBTITLES FOR OUR DATA (2005-2019)</h3>
+        
+        <div class="revelation-content">
+            <p><strong>Research Overview</strong></p>
+            
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut aliquam ex eget 
+                lacus sagittis mollis. Proin sagittis non magna tincidunt vestibulum. Praesent ut neque fermentum sem porta elementum. 
+                In in faucibus nisi. Pellentesque rutrum erat in diam dictum, sed molestie felis ultrices. Pellentesque cursus nibh ut ligula posuere, vel molestie eros pretium. Fusce risus felis, finibus eu aliquam vel, 
+                consectetur quis quam. Quisque at orci nisi. Nunc fermentum eleifend mi eget fermentum. 
+                Ut tincidunt, diam ut mattis fringilla, velit dui viverra ipsum, in dictum eros turpis et leo. Sed eget libero ac mauris cursus gravida.
+
+
+            </p>
+
+            <div class="highlight-box">
+                <h4>Dataset Scope</h4>
+                <p>
+
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut aliquam ex eget 
+                lacus sagittis mollis. Proin sagittis non magna tincidunt vestibulum. Praesent ut neque fermentum sem porta elementum. 
+                In in faucibus nisi. Pellentesque rutrum erat in diam dictum, sed molestie felis ultrices. Pellentesque cursus nibh ut ligula posuere, vel molestie eros pretium. Fusce risus felis, finibus eu aliquam vel, 
+                consectetur quis quam. Quisque at orci nisi. Nunc fermentum eleifend mi eget fermentum. 
+                Ut tincidunt, diam ut mattis fringilla, velit dui viverra ipsum, in dictum eros turpis et leo. Sed eget libero ac mauris cursus gravida.
+
+                </p>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="number">200%</div>
+                    <div class="label">bullshit</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">many</div>
+                    <div class="label">categories analysed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">4939394943</div>
+                    <div class="label">Years spent on making nyan cat</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">800$</div>
+                    <div class="label">dollars for rent a month</div>
+                </div>
+            </div>
+
+            <button class="explore-btn" onclick="window.location.href='adoption_rate_2.html'">
+                Explore the Data →
+            </button>
+        </div>
+    </section>
+
+    <script>
+        function createNyanCat() {
+            const nyanCat = document.createElement('div');
+            nyanCat.innerHTML = '🐱🌈';
+            nyanCat.style.cssText = `
+                position: fixed;
+                font-size: 3rem;
+                top: ${Math.random() * 80}vh;
+                left: -100px;
+                z-index: 9999;
+                animation: nyanFly 8s linear;
+                pointer-events: none;
+            `;
+            document.body.appendChild(nyanCat);
+            
+            setTimeout(() => nyanCat.remove(), 8000);
+        }
+        setInterval(createNyanCat, 15000); 
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function processPayment() {
+            closeModal();
+            
+            const hero = document.getElementById('hero');
+            hero.style.transition = 'opacity 0.5s';
+            hero.style.opacity = '0';
+
+            setTimeout(() => {
+                hero.style.display = 'none';
+                
+                const revelation = document.getElementById('revelation');
+                revelation.classList.add('active');
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 500);
+        }
+
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
