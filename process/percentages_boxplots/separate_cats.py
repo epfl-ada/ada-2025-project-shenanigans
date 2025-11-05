@@ -20,7 +20,7 @@ money_income_re = re.compile(
     """,
 )
 
-datapath = Path("../data") 
+datapath = Path("../../dataset") 
 
 for cat_id in range(15):
     print(f"Category {cat_id+1}...") # +1 to avoid taking empty cat into account

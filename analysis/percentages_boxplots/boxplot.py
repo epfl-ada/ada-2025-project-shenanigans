@@ -24,8 +24,8 @@ categories = [
     "Travel & Events",
 ]
 
-data_path = Path("data")
-plots_path = Path("plots")
+data_path = Path("../../dataset")
+plots_path = Path("../../figures")
 
 def box_stats(values: List[float]) -> Tuple[float, float, float, float, float]:
     """Provide stats of a given list of values to construct the boxplot."""

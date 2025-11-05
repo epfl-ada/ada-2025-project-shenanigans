@@ -24,7 +24,7 @@ categories = [
     "Travel & Events",
 ]
 
-datapath = Path("../data")
+datapath = Path("../../dataset")
 
 meta_chunks = pd.read_json(
     datapath / "yt_metadata_en.jsonl.gz",

@@ -24,8 +24,8 @@ categories = [
     "Travel & Events",
 ]
 
-datapath = Path("data")
-plots_path = Path("plots")
+datapath = Path("../../dataset")
+plots_path = Path("../../figures")
 
 money_income_re = re.compile(
     r"""(?ix)                           
