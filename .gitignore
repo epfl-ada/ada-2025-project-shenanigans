@@ -7,6 +7,8 @@ dataset/*.csv
 *.mp4
 *.pkl
 **/.DS_Store
+*.jsonl
+*.gz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
