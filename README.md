@@ -4,7 +4,7 @@
     <img src="./assets/shenanigans.svg" alt="sheNaNigans", style="width: 20rem;">
 </h1>
 
-> _Analysing duration, uploads, and sponsorship trends over time._
+> _Analysing duration, uploads, and sponsorship trends of youtube channels over time._
 
 ## Abstract
 
@@ -27,7 +27,7 @@ audiences. To do this, we identified
 
 ## Research Questions
 
-### How have channels evolved from indie to professional?
+#### 1. How have channels evolved from indie to professional?
 
 - What is the **adoption curve** of sponsorships between different categories?
 - When and why do we have a **rise of sponsorships**?
@@ -35,7 +35,7 @@ audiences. To do this, we identified
 - Do **different channel sizes** employ **different strategies** (_e.g._
   multiple sponsors, recurring sponsors, brand partnerships)?
 
-### What enabled indie channels to become professional-minded?
+#### 2. What enabled indie channels to become professional-minded?
 
 - At what **subscriber thresholds** do creators start showing **"industry-like"
   patterns** (sponsors, steady uploads, longer videos, higher engagement
@@ -56,7 +56,7 @@ audiences. To do this, we identified
   removed**, using the
   [**YouTube API**](https://developers.google.com/youtube/v3)?
 
-### How does a focus on professionalism affect engagement?
+#### 3. How does a focus on professionalism affect engagement?
 
 - Does the **number of views**, **subscriber growth**, **like/dislike ratio**
   change **after the first sponsor** appears? How?
