@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="adoption_rate_2.css">
+  
+</head>
+<body>
+  <div id="header">
+    <div class="accent-line"></div>
+    <h1>YouTube Monetization Evolution</h1>
+    <p>Cumulative sponsorship adoption across content categories (2005-2019)</p>
+  </div>
+
+  <div id="main-container">
+    <div id="chart-container">
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: #ef4444;"></div>
+          <span>Patreon</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #3b82f6;"></div>
+          <span>Donation (PayPal/Ko-fi/Buy Me A Coffee)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #f59e0b;"></div>
+          <span>Products (Merch/Courses)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #ec4899;"></div>
+          <span>Crowdfunding (GoFundMe, Kickstarter)</span>
+        </div>
+      </div>
+      <svg id="chart"></svg>
+    </div>
+  </div>
+
+  <div id="controls">
+    <div id="slider-container">
+      <div id="year-display">
+        <span id="year-label">2005</span>
+      </div>
+      <input type="range" id="slider" min="2005" max="2019" value="2005" step="1">
+      <div class="year-marks">
+        <span>2005</span>
+        <span>2008</span>
+        <span>2010</span>
+        <span>2012</span>
+        <span>2014</span>
+        <span>2016</span>
+        <span>2018</span>
+        <span>2019</span>
+      </div>
+      <div id="stats">
+        <div class="stat">
+          <div class="stat-value" id="total-videos">0</div>
+          <div class="stat-label">Total Videos</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="membership-total">0</div>
+          <div class="stat-label">With Patreon</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="donation-total">0</div>
+          <div class="stat-label">With Donation</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="products-total">0</div>
+          <div class="stat-label">With Products</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="crowdfunding-total">0</div>
+          <div class="stat-label">With Crowdfunding</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const platformColors = {
+      'membership': '#ef4444',    
+      'donation': '#3b82f6',      
+      'crowdfunding': '#ec4899',   
+      'products': '#f59e0b'       
+    };
+
+    const margin = {top: 10, right: 40, bottom: 30, left: 200};
+    const container = document.getElementById('chart-container');
+    const width = Math.min(container.clientWidth - margin.left - margin.right, 1000);
+    const height = 500;
+
+    const svg = d3.select("#chart")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    d3.json("sponsorship_cumulative.json").then(data => {
+      // Get all unique categories
+      const categories = Array.from(new Set(data.map(d => d.categories))).sort();
+      
+      const x = d3.scaleLinear()
+        .domain([0, 50])
+        .range([0, width]);
+
+      const y = d3.scaleBand()
+        .domain(categories)
+        .range([0, height])
+        .padding(0.25);
+
+      // Axes
+      svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x).ticks(5).tickFormat(d => d + "%"));
+
+      svg.append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(y));
+
+      // Create bar groups
+      const barGroups = svg.selectAll(".bar-group")
+        .data(categories)
+        .join("g")
+        .attr("class", "bar-group")
+        .attr("transform", d => `translate(0,${y(d)})`);
+
+      // Create stacked bars for each platform
+      const platforms = ['membership', 'donation', 'products', 'crowdfunding'];
+      
+      platforms.forEach(platform => {
+        barGroups.append("rect")
+          .attr("class", `bar ${platform}-bar`)
+          .attr("height", y.bandwidth())
+          .attr("x", 0)
+          .attr("width", 0)
+          .attr("fill", platformColors[platform]);
+      });
+
+      // Value label
+      barGroups.append("text")
+        .attr("class", "bar-value")
+        .attr("y", y.bandwidth() / 2 + 4)
+        .attr("x", 5);
+
+      function updateChart(year) {
+        d3.select("#year-label").text(year);
+
+        // Filter data for this year
+        const yearData = new Map(
+          data.filter(d => d.year === year)
+            .map(d => [d.categories, d])
+        );
+
+        // Update stats
+        let totalVideos = 0;
+        let membershipTotal = 0;
+        let donationTotal = 0;
+        let productsTotal = 0;
+        let crowdfundingTotal = 0; 
+
+        
+        yearData.forEach(d => {
+          totalVideos += d.total;
+          membershipTotal += d.patreon_count;
+          donationTotal += d.donation_count;
+          productsTotal += d.products_count;
+          crowdfundingTotal += d.crowdfunding_count;  
+
+        });
+        
+        d3.select("#total-videos").text(totalVideos.toLocaleString());
+        d3.select("#membership-total").text(membershipTotal.toLocaleString());
+        d3.select("#donation-total").text(donationTotal.toLocaleString());
+        d3.select("#products-total").text(productsTotal.toLocaleString());
+        d3.select("#crowdfunding-total").text(crowdfundingTotal.toLocaleString());  
+
+        // Update bars (stacked)
+        barGroups.each(function(category) {
+          const info = yearData.get(category);
+          const group = d3.select(this);
+          
+          if (!info) {
+            platforms.forEach(platform => {
+              group.select(`.${platform}-bar`)
+                .transition().duration(600)
+                .attr("width", 0);
+            });
+            group.select(".bar-value").text("");
+            return;
+          }
+
+          let xOffset = 0;
+          
+          // Membership (Patreon)
+          const membershipWidth = x(info.membership_pct);
+          group.select(".membership-bar")
+            .transition().duration(600)
+            .attr("x", xOffset)
+            .attr("width", membershipWidth);
+          xOffset += membershipWidth;
+
+          // Donation (PayPal/Ko-fi/Buy Me a Coffee)
+          const donationWidth = x(info.donation_pct);
+          group.select(".donation-bar")
+            .transition().duration(600)
+            .attr("x", xOffset)
+            .attr("width", donationWidth);
+          xOffset += donationWidth;
+
+          // Products (Merch + Courses)
+          const productsWidth = x(info.products_pct);
+          group.select(".products-bar")
+            .transition().duration(600)
+            .attr("x", xOffset)
+            .attr("width", productsWidth);
+          xOffset += productsWidth;
+
+          // Crowdfunding
+          const crowdfundingWidth = x(info.crowdfunding_pct);
+          group.select(".crowdfunding-bar")
+            .transition().duration(600)
+            .attr("x", xOffset)
+            .attr("width", crowdfundingWidth);
+          xOffset += crowdfundingWidth;
+
+          // Total percentage
+          const totalPct = info.membership_pct + info.donation_pct + info.products_pct + info.crowdfunding_pct;
+
+          // Label
+          group.select(".bar-value")
+            .transition().duration(600)
+            .attr("x", xOffset + 10)
+            .text(totalPct > 0.5 ? `${totalPct.toFixed(1)}%` : '');
+        });
+      }
+
+      d3.select("#slider").on("input", function() {
+        updateChart(+this.value);
+      });
+
+      updateChart(2005);
+    });
+  </script>
+</body>
+</html>
