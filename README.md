@@ -117,13 +117,21 @@ that we aim to answer with **reproducible, data-driven methods**.
 
 ```mermaid
 gantt
-    title ada project timeline
+    title sheNANigans ADA Project Timeline
     dateFormat YYYY-MM-DD
-    section research
-        temporal evolution :a1, 2025-11-5, 7d
-        research questions :after a1, 2025-12-10
-    section website
-        website            :2025-11-26, 2025-12-17
+    tickInterval 1week
+    section exploration/analysis
+        Temporal Evolution : 2025-11-5, 14d
+        Research Question 1 : 2025-11-12, 14d
+        Research Question 2 : 2025-11-19, 14d
+        Research Question 3 : 2025-11-26, 14d
+    section website implementation
+        Foundations        : 2025-11-5, 7d
+        Add story element  : 2025-11-12, 7d
+        Add RQ 1 analysis  : 2025-11-19, 7d
+        Add RQ 2 analysis  : 2025-11-26, 7d
+        Add RQ 3 analysis  : 2025-12-3, 7d
+        Finish up          : 2025-12-10, 2025-12-17
 ```
 
 ## Organisation within the team
