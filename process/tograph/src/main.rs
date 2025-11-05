@@ -1,13 +1,10 @@
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::Write;
 use std::io::{BufRead, BufReader, BufWriter, Read};
-use std::process::exit;
 
 use fdg::{
     Force, ForceGraph,
     fruchterman_reingold::FruchtermanReingoldParallel,
-    petgraph::dot::Dot,
     petgraph::stable_graph::{NodeIndex, StableGraph},
 };
 use flate2::{Compression, read::GzDecoder, write::GzEncoder};
@@ -56,7 +53,7 @@ fn main() {
         let s = std::str::from_utf8(&buf).unwrap();
         let e: u32 = s.parse().unwrap();
 
-        if e >= 2_500 {
+        if e >= 15_000 {
             let a = *inserted.entry(i).or_insert_with(|| matgraph.add_node(i));
             let b = *inserted.entry(j).or_insert_with(|| matgraph.add_node(j));
             matgraph.add_edge(a, b, ());
@@ -71,13 +68,6 @@ fn main() {
 
         buf.clear();
     }
-
-    let file = File::create("bigraph.dot.gz").unwrap();
-    let mut writer =
-        BufWriter::new(GzEncoder::new(file, Compression::default()));
-    let _ = write!(&mut writer, "{:?}", Dot::new(&matgraph));
-
-    exit(0);
 
     println!(
         "loaded {} nodes and {} edges!",
@@ -146,7 +136,7 @@ fn main() {
 
     let out = SerGraph { nodes, edges };
 
-    let file = File::create("bigraph.json.gz").unwrap();
+    let file = File::create("tmpgraph.json.gz").unwrap();
     let writer = BufWriter::new(GzEncoder::new(file, Compression::default()));
     let _ = serde_json::to_writer(writer, &out);
 }
