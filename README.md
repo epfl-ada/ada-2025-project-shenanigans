@@ -111,7 +111,25 @@ that we aim to answer with **reproducible, data-driven methods**.
 
 ## Methods
 
+#### Data pre-processing:
+- Clean and normalise the data such as empty dates, integers and strings missing
+- Split the data for different categories
+- Link extraction: Extract URLs from descriptions for each video, and unshorten certain URLs.
+- Merge with other datasets, such as labelling certain videos as being sponsored by using SponsorBlock
 
+#### Proffesionalism Analysis
+-  Temporal analysis:
+  - Use time series with moving averages to analyse trends in subscriber counts, views, etc
+  - Check how different categories evolved over time
+-  Sponsorship detection:
+  - Map videos that have sponsors using the SponsorBlock labels,
+  - Check if URLs contain links to product sale like amazon, or have donation links like paypal/patreon (using text and regex matching)
+  - Combine upload regularity, count and video lengths to indicate if a channel tries to be more professional 
+  - Use the same methods as for temporal analysis but concerning proffesional traits
+
+#### Visualisation
+- Create comparisons between categories, channels, and professionalism traits
+- Temporal trend plots, 
 
 ## Proposed timeline
 
@@ -131,7 +149,7 @@ gantt
         Add RQ 1 analysis  : 2025-11-19, 7d
         Add RQ 2 analysis  : 2025-11-26, 7d
         Add RQ 3 analysis  : 2025-12-3, 7d
-        Add story element? : 2025-12-3, 10d
+        Add story telling  : 2025-12-3, 10d
         Finish up          : 2025-12-10, 2025-12-17
 ```
 
