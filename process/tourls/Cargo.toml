@@ -1,0 +1,10 @@
+[package]
+name = "tourls"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+flate2.workspace = true
+regex = "1.12.2"
+serde.workspace = true
+serde_json.workspace = true

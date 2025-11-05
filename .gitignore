@@ -1,9 +1,11 @@
 dataset/*.csv
 *.npy
 *.svg
+*.gz
 *.pt
 *.avi
 *.mp4
+*.pkl
 **/.DS_Store
 *.jsonl
 *.gz
@@ -20,7 +22,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/

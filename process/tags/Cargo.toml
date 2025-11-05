@@ -1,0 +1,9 @@
+[package]
+name = "tags"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+flate2.workspace = true
+serde.workspace = true
+serde_json.workspace = true
