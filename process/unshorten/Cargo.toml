@@ -1,0 +1,16 @@
+[package]
+name = "unshorten"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+flate2.workspace = true
+futures = "0.3.31"
+regex.workspace = true
+reqwest = { version = "0.12.24", features = ["blocking"] }
+reqwest-middleware = "0.4.2"
+reqwest-retry = "0.7.0"
+serde.workspace = true
+serde_json.workspace = true
+tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
+tokio-stream = "0.1.17"

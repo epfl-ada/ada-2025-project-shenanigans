@@ -1,5 +1,5 @@
 [package]
-name = "tourls"
+name = "todomains"
 version.workspace = true
 edition.workspace = true
 
