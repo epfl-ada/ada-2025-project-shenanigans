@@ -1,0 +1,55 @@
+{
+  "social_media": [
+    "twitter.com", "x.com", "instagram.com", "facebook.com", 
+    "tiktok.com", "linkedin.com", "reddit.com", "discord.com", 
+    "snapchat.com", "tumblr.com", "pinterest.com", "myspace.com",
+    "vk.com", "weibo.com", "discord.gg", "discord.me", "discordapp.com",
+    "steamcommunity.com", "plus.google.com", "ask.fm"
+  ],
+  "video_platform": [
+    "youtube.com", "youtu.be", "twitch.tv", "vimeo.com", 
+    "dailymotion.com", "streamlabs.com", "liveleak.com", 
+    "vine.co", "periscope.tv", "mixer.com", "dlive.tv"
+  ],
+  "url_shortener": [
+    "bit.ly", "goo.gl", "tinyurl.com", "ow.ly", "t.co", 
+    "amzn.to", "po.st", "smarturl.it", "fkrt.it", "nbcnews.to",
+    "short.link", "is.gd", "buff.ly", "adf.ly"
+  ],
+  "music_platform": [
+    "soundcloud.com", "spotify.com", "bandcamp.com", 
+    "epidemicsound.com", "audiomicro.com", "bensound.com",
+    "incompetech.com", "reverbnation.com", "audiomack.com", "mixcloud.com"
+  ],
+  "ecommerce": [
+    "amazon.com", "amazon.co.uk", "amazon.de", "amazon.in",
+    "ebay.com", "etsy.com", "store.steampowered.com", 
+    "teespring.com", "aliexpress.com", "shopify.com", "wish.com"
+  ],
+  "monetization": [
+    "patreon.com", "paypal.com", "paypal.me", "ko-fi.com",
+    "buymeacoffee.com", "gofundme.com", "kickstarter.com",
+    "indiegogo.com", "cash.me", "venmo.com"
+  ],
+  "tech_platform": [
+    "google.com", "play.google.com", "itunes.apple.com",
+    "apple.co", "drive.google.com", "docs.google.com",
+    "apple.com", "apps.apple.com", "microsoft.com"
+  ],
+  "gaming": [
+    "steam.com", "steampowered.com", "epicgames.com",
+    "roblox.com", "minecraft.net", "nexusmods.com",
+    "curseforge.com", "itch.io", "xbox.com"
+  ],
+  "news_media": [
+    "cnn.com", "bbc.com", "bbc.co.uk", "foxnews.com",
+    "nytimes.com", "wsj.com", "reuters.com", "theguardian.com",
+    "video.foxnews.com", "abpnews.abplive.in", "next9news.in"
+  ],
+  "educational": [
+    "wikipedia.org", "wikimedia.org", "khanacademy.org"
+  ],
+  "file_storage": [
+    "mediafire.com"
+  ]
+}
