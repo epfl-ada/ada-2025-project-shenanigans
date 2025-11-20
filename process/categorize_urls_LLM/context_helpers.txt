@@ -1,0 +1,56 @@
+# Category definitions with examples
+CATEGORY_EXAMPLES = {
+    "monetization/direct": ["buymeacoffee.com"],
+    "monetization/merch": ["redbubble.com"],
+    "monetization/sponsors": [ "nordvpn.com"],
+    "monetization/affiliates": ["g2a.com", "amzn.to", "amazon.com", "geni.us", "go.magik.ly", "apple.co", "rstyle.me"],
+    "monetization/stores": ["etsy.com", "ebay.com"],
+    "monetization/courses": ["udemy.com", "coursera.org"],
+    "url_shorteners": ["goo.gl", "bit.ly"], #ONLY for urls that redirect you elsewhere, NOT for shortened urls of known websites
+    "social_media": ["twitch.tv", "discord.gg", "instagram.com", "on.fb.me"],
+    "content/music": ["soundcloud.com", "spoti.fi"],
+    "content/video": ["youtube.com", "youtu.be", "vimeo.com", "dailymotion.com"],
+    "content/portfolios": ["behance.net", "artstation.com"],
+    "gaming": ["steamcommunity.com", "roblox.com"],
+    "legal/reference": ["creativecommons.org", "google.com"],
+    "no_category": [] #category for if you are unsure
+}
+
+SYSTEM_PROMPT = """You are a domain categorization expert analyzing YouTube creator economy links. Your goal: Categorize domains to understand how YouTube creators professionalize (indie → professional). Return only the category that best fits the domain's primary use in the creator economy context. If you are unsure, put it into "no_category"."""
+
+def create_json_schema():
+    """Create the JSON schema for structured outputs."""
+    return {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "domain_classification",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "category": {
+                        "type": "string",
+                        "description": "The primary category of the domain in creator economy context",
+                        "enum": [
+                            "monetization/direct",
+                            "monetization/merch",
+                            "monetization/sponsors",
+                            "monetization/affiliates",
+                            "monetization/stores",
+                            "monetization/courses",
+                            "url_shorteners",
+                            "social_media",
+                            "content/music",
+                            "content/video",
+                            "content/portfolios",
+                            "gaming",
+                            "legal/reference",
+                            "no_category"
+                        ]
+                    }
+                },
+                "required": ["category"],
+                "additionalProperties": False
+            }
+        }
+    }

@@ -1,0 +1,152 @@
+============================================================
+YOUTUBER MONETIZATION PLATFORM ANALYSIS
+============================================================
+
+=== .SHOP DOMAINS ANALYSIS ===
+.shop domains domains found: 118
+Shopping       :   63 ( 53.4%)
+Business       :   26 ( 22.0%)
+Computers      :   14 ( 11.9%)
+Society        :    5 (  4.2%)
+Reference      :    3 (  2.5%)
+--------------------------------------------------
+
+=== SHOPIFY STORES ANALYSIS ===
+Shopify stores domains found: 26
+Shopping       :   22 ( 84.6%)
+Business       :    2 (  7.7%)
+Computers      :    1 (  3.8%)
+Science        :    1 (  3.8%)
+--------------------------------------------------
+
+=== ETSY SHOPS ANALYSIS ===
+Etsy shops domains found: 11
+Shopping       :    6 ( 54.5%)
+Arts           :    1 (  9.1%)
+Business       :    1 (  9.1%)
+Computers      :    1 (  9.1%)
+Society        :    1 (  9.1%)
+--------------------------------------------------
+
+=== AMAZON STORES ANALYSIS ===
+Amazon stores domains found: 4
+Shopping       :    2 ( 50.0%)
+Computers      :    1 ( 25.0%)
+Society        :    1 ( 25.0%)
+--------------------------------------------------
+
+=== PATREON ANALYSIS ===
+Patreon domains found: 1
+Society        :    1 (100.0%)
+--------------------------------------------------
+
+=== KO-FI ANALYSIS ===
+Ko-fi domains found: 0
+--------------------------------------------------
+
+=== BUY ME A COFFEE ANALYSIS ===
+Buy Me a Coffee domains found: 0
+--------------------------------------------------
+
+=== GUMROAD ANALYSIS ===
+Gumroad domains found: 1
+Computers      :    1 (100.0%)
+--------------------------------------------------
+
+=== TEESPRING/SPRING ANALYSIS ===
+Teespring/Spring domains found: 63
+Business       :   42 ( 66.7%)
+Computers      :    7 ( 11.1%)
+Shopping       :    5 (  7.9%)
+Health         :    4 (  6.3%)
+Society        :    2 (  3.2%)
+--------------------------------------------------
+
+=== REDBUBBLE ANALYSIS ===
+Redbubble domains found: 2
+Computers      :    1 ( 50.0%)
+Shopping       :    1 ( 50.0%)
+--------------------------------------------------
+
+=== SOCIETY6 ANALYSIS ===
+Society6 domains found: 0
+--------------------------------------------------
+
+=== SPREADSHIRT ANALYSIS ===
+Spreadshirt domains found: 0
+--------------------------------------------------
+C:\Users\veron\AppData\Local\Temp\ipykernel_26232\2574050221.py:2: UserWarning: This pattern is interpreted as a regular expression, and has match groups. To actually get the groups, use str.extract.
+  matching_domains = df[df['url'].str.contains(pattern, case=False, na=False, regex=regex)]
+
+=== STORE EXTENSIONS ANALYSIS ===
+Store extensions domains found: 412
+Business       :  183 ( 44.4%)
+Society        :   71 ( 17.2%)
+Shopping       :   59 ( 14.3%)
+Computers      :   31 (  7.5%)
+Sports         :   14 (  3.4%)
+--------------------------------------------------
+
+=== SQUARESPACE COMMERCE ANALYSIS ===
+Squarespace commerce domains found: 30
+Sports         :    7 ( 23.3%)
+Society        :    7 ( 23.3%)
+Arts           :    5 ( 16.7%)
+Reference      :    4 ( 13.3%)
+Recreation     :    2 (  6.7%)
+--------------------------------------------------
+
+=== WOOCOMMERCE ANALYSIS ===
+WooCommerce domains found: 0
+--------------------------------------------------
+
+=== COMBINED MONETIZATION ANALYSIS ===
+Total unique monetization URLs: 667
+
+=== CATEGORY BREAKDOWN ===
+Business            :    255 ( 38.2%)
+Shopping            :    159 ( 23.8%)
+Society             :     88 ( 13.2%)
+Computers           :     57 (  8.5%)
+Sports              :     23 (  3.4%)
+Reference           :     18 (  2.7%)
+Arts                :     17 (  2.5%)
+Recreation          :     15 (  2.2%)
+Science             :     13 (  1.9%)
+Health              :      9 (  1.3%)
+
+============================================================
+AFFILIATE MARKETING ANALYSIS
+============================================================
+
+=== AMAZON AFFILIATES ANALYSIS ===
+Amazon affiliates domains found: 0
+------------------------------
+
+=== CLICKBANK ANALYSIS ===
+ClickBank domains found: 1
+Business       :    1 (100.0%)
+------------------------------
+
+=== COMMISSION JUNCTION ANALYSIS ===
+Commission Junction domains found: 33
+Business       :   14 ( 42.4%)
+Society        :    9 ( 27.3%)
+Arts           :    4 ( 12.1%)
+Science        :    3 (  9.1%)
+Recreation     :    2 (  6.1%)
+------------------------------
+
+=== SHAREASALE ANALYSIS ===
+ShareASale domains found: 1
+Business       :    1 (100.0%)
+------------------------------
+
+=== AFFILIATE NETWORKS ANALYSIS ===
+Affiliate networks domains found: 52
+Business       :   18 ( 34.6%)
+Games          :   18 ( 34.6%)
+Computers      :    4 (  7.7%)
+Health         :    4 (  7.7%)
+Society        :    3 (  5.8%)
+------------------------------
