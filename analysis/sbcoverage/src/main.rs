@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 use charming::component::{Grid, GridTooltip};
-use charming::element::Symbol;
+use charming::element::{BoundaryGap, Symbol};
 use charming::{
     Chart, HtmlRenderer,
     component::{Axis, Legend, Title},
@@ -138,6 +138,8 @@ fn main() {
     });
     let tooltip_fn = format!(
         r#"
+        console.log(param)
+        console.log(param.data)
         const totals = {:?};
         const count = Math.round(totals[param.dataIndex] * param.data);
         const label = count.toString()
@@ -192,11 +194,13 @@ fn main() {
                 .left("50%"),
         )
         .tooltip(Tooltip::new().trigger(Trigger::Item))
+        .animation_duration(1500.0)
         .x_axis(
             Axis::new()
                 .name("year")
                 .axis_tick(AxisTick::new().show(false))
                 .type_(AxisType::Category)
+                .boundary_gap(BoundaryGap::CategoryAxis(false))
                 .data(YEARS.iter().map(|e| e.to_string()).collect()),
         )
         .y_axis(Axis::new().name("% videos").type_(AxisType::Value))
