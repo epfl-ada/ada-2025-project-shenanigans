@@ -9,6 +9,8 @@ use regex::Regex;
 use serde::Deserialize;
 use serde_json;
 
+use utils::line_progress;
+
 #[derive(Deserialize)]
 struct VideoUrls {
     urls: Vec<String>,
@@ -31,10 +33,7 @@ fn main() {
     let mut start = std::time::Instant::now();
     let mut domain_freqs = HashMap::<String, u64>::new();
     reader.lines().enumerate().for_each(|(i, read_line)| {
-        if i != 0 && i % 10_000_000 == 0 {
-            println!("processed {i} lines in {:?}", start.elapsed());
-            start = std::time::Instant::now();
-        }
+        line_progress(i, &mut start, 10_000_000);
 
         let line = read_line.unwrap();
         let VideoUrls { urls } = serde_json::from_str(&line).unwrap();

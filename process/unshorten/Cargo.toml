@@ -14,3 +14,4 @@ serde.workspace = true
 serde_json.workspace = true
 tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1.17"
+utils.workspace = true
