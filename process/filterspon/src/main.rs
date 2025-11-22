@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 
@@ -7,6 +6,8 @@ use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
 use serde::Deserialize;
 use serde_json;
+
+use utils::{line_progress, make_sponsor_set};
 
 #[derive(Deserialize)]
 struct VideoUrls {
@@ -17,25 +18,7 @@ fn main() {
     let start = std::time::Instant::now();
     let file = File::open("../sponsorblock/sponsorTimes.csv").unwrap();
     let reader = BufReader::new(file);
-
-    let sponsored: HashSet<String> = reader
-        .lines()
-        .skip(1)
-        .filter_map(|read_line| {
-            let line = read_line.unwrap();
-            if line.starts_with(r#"","#) || line.starts_with(r#""""#) {
-                return None;
-            }
-            if line.starts_with('"') {
-                return Some(line.trim_start_matches('"').to_string());
-            }
-            if let Some((video_id, _)) = line.split_once(",") {
-                Some(video_id.to_string())
-            } else {
-                None
-            }
-        })
-        .collect();
+    let sponsored = make_sponsor_set(reader).unwrap();
 
     println!(
         "constructed sponsor set in {:?} for {} videos",
@@ -52,10 +35,7 @@ fn main() {
     let mut kept_lines = String::new();
     let mut start = std::time::Instant::now();
     reader.lines().enumerate().for_each(|(i, read_line)| {
-        if i != 0 && i % 10_000_000 == 0 {
-            println!("processed {i} lines in {:?}", start.elapsed());
-            start = std::time::Instant::now();
-        }
+        line_progress(i, &mut start, 10_000_000);
 
         let line = read_line.unwrap();
         let VideoUrls { display_id } = serde_json::from_str(&line).unwrap();

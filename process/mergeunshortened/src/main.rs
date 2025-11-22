@@ -8,19 +8,23 @@ use flate2::write::GzEncoder;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
+use utils::{clean_url, line_progress, to_jsonl};
+
+const PATTERNS: [&str; 8] = [
+    "bit.ly",
+    "geni.us",
+    "goo.gl",
+    "is.gd",
+    "j.mp",
+    "ow.ly",
+    "tiny.cc",
+    "tinyurl.com",
+];
+
 #[derive(Serialize, Deserialize)]
 struct VideoUrls {
     display_id: String,
     urls: Vec<String>,
-}
-
-fn clean_url(url: &str) -> String {
-    let cleaned = url
-        .trim_start_matches("https://")
-        .trim_start_matches("http://")
-        .trim_end_matches(|e: char| e.is_ascii_punctuation());
-
-    "https://".to_string() + cleaned
 }
 
 fn main() {
@@ -35,18 +39,7 @@ fn main() {
         }
     };
 
-    let patterns = [
-        "bit.ly",
-        "geni.us",
-        "goo.gl",
-        "is.gd",
-        "j.mp",
-        "ow.ly",
-        "tiny.cc",
-        "tinyurl.com",
-    ];
-
-    let maps: Vec<HashMap<String, String>> = patterns
+    let maps: Vec<HashMap<String, String>> = PATTERNS
         .iter()
         .map(|p| {
             let fname = format!("unshorted/{}.csv.gz", p.replace('.', "_"));
@@ -64,15 +57,12 @@ fn main() {
         .lines()
         .enumerate()
         .map(|(i, read_line)| {
-            if i != 0 && i % 10_000 == 0 {
-                println!("processed {i} lines in {:?}", start.elapsed());
-                start = std::time::Instant::now();
-            }
+            line_progress(i, &mut start, 10_000);
 
             let line = read_line.unwrap();
             let mut vidurls: VideoUrls = serde_json::from_str(&line).unwrap();
             vidurls.urls.iter_mut().for_each(|url| {
-                let Some(i) = patterns.iter().position(|p| url.contains(p))
+                let Some(i) = PATTERNS.iter().position(|p| url.contains(p))
                 else {
                     return;
                 };
@@ -89,9 +79,6 @@ fn main() {
     let file = File::create("sponsoredurls_unshortened.jsonl.gz").unwrap();
     let mut writer =
         BufWriter::new(GzEncoder::new(file, Compression::default()));
-    let buf = videourls
-        .drain(..)
-        .map(|e| serde_json::to_string(&e).unwrap())
-        .fold(String::new(), |acc, e| acc + &e + "\n");
+    let buf = to_jsonl(videourls.drain(..).as_slice()).unwrap();
     writer.write_all(buf.as_bytes()).unwrap();
 }

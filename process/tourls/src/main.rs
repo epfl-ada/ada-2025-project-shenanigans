@@ -8,6 +8,8 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
+use utils::{line_progress, to_jsonl};
+
 #[derive(Deserialize)]
 struct VideoEntry {
     display_id: String,
@@ -44,10 +46,7 @@ fn main() {
     let mut videourls = Vec::<VideoUrls>::with_capacity(10_000_000);
 
     reader.lines().enumerate().for_each(|(i, read_line)| {
-        if i != 0 && i % 10_000_000 == 0 {
-            println!("processed {i} lines in {:?}", start.elapsed());
-            start = std::time::Instant::now();
-        }
+        line_progress(i, &mut start, 10_000_000);
 
         let line = read_line.unwrap();
         let Ok(VideoEntry {
@@ -70,17 +69,11 @@ fn main() {
         videourls.push(VideoUrls { display_id, urls });
 
         if videourls.len() >= 10_000_000 {
-            let buf = videourls
-                .drain(..)
-                .map(|e| serde_json::to_string(&e).unwrap())
-                .fold(String::new(), |acc, e| acc + &e + "\n");
+            let buf = to_jsonl(videourls.drain(..).as_slice()).unwrap();
             writer.write_all(buf.as_bytes()).unwrap();
         }
     });
 
-    let buf = videourls
-        .drain(..)
-        .map(|e| serde_json::to_string(&e).unwrap())
-        .fold(String::new(), |acc, e| acc + &e + "\n");
+    let buf = to_jsonl(videourls.drain(..).as_slice()).unwrap();
     writer.write_all(buf.as_bytes()).unwrap();
 }

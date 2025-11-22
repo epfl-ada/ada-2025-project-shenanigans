@@ -11,3 +11,4 @@ charming = { path = "/home/kalankaboom/Desktop/charming/charming", features=["ss
 flate2 = "1.1.2"
 serde = { version = "1.0.227", features = ["derive"] }
 serde_json = "1.0.145"
+utils = { path = "../process/utils" }

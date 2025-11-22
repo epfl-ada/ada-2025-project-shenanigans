@@ -14,6 +14,8 @@ use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
 use serde::Deserialize;
 use serde_json;
 
+use utils::{clean_url, line_progress};
+
 #[derive(Deserialize)]
 struct VideoUrls {
     urls: Vec<String>,
@@ -49,15 +51,6 @@ async fn unshorten(
             .insert(url, response.status().to_string());
         eprintln!("{response:?}");
     }
-}
-
-fn clean_url(url: &str) -> String {
-    let cleaned = url
-        .trim_start_matches("https://")
-        .trim_start_matches("http://")
-        .trim_end_matches(|e: char| e.is_ascii_punctuation());
-
-    "https://".to_string() + cleaned
 }
 
 #[tokio::main]
