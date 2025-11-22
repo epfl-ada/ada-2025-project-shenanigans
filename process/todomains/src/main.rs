@@ -25,7 +25,7 @@ fn main() {
     )
     .unwrap();
 
-    let file = File::open("urls.jsonl.gz").unwrap();
+    let file = File::open("sponsoredurls_unshortened.jsonl.gz").unwrap();
     let reader = BufReader::new(GzDecoder::new(file));
 
     let mut start = std::time::Instant::now();
@@ -46,7 +46,7 @@ fn main() {
         });
     });
 
-    let file = File::create("domains.csv.gz").unwrap();
+    let file = File::create("sponsoreddomains_unshortened.csv.gz").unwrap();
     let mut writer =
         BufWriter::new(GzEncoder::new(file, Compression::default()));
 

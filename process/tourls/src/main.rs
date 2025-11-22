@@ -53,7 +53,7 @@ fn main() {
         let Ok(VideoEntry {
             display_id,
             description,
-        }) = serde_json::from_str::<VideoEntry>(&line)
+        }) = serde_json::from_str(&line)
         else {
             return;
         };

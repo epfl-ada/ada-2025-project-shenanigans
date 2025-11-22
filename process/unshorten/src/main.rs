@@ -33,13 +33,15 @@ async fn unshorten(
         return;
     };
     if response.status().is_redirection() {
-        let tmp = response
-            .headers()
-            .get(reqwest::header::LOCATION)
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
+        let tmp = String::from_utf8_lossy(
+            response
+                .headers()
+                .get(reqwest::header::LOCATION)
+                .unwrap()
+                .as_bytes(),
+        )
+        .to_string();
+
         map.lock().unwrap().insert(url, tmp);
     } else {
         map.lock()
@@ -49,9 +51,42 @@ async fn unshorten(
     }
 }
 
+fn clean_url(url: &str) -> String {
+    let cleaned = url
+        .trim_start_matches("https://")
+        .trim_start_matches("http://")
+        .trim_end_matches(|e: char| e.is_ascii_punctuation());
+
+    "https://".to_string() + cleaned
+}
+
 #[tokio::main]
 async fn main() {
-    let file = File::open("urls.jsonl.gz").unwrap();
+    let init = if let Ok(file) = File::open("unshorted/tiny_cc.csv.gz") {
+        let reader = BufReader::new(GzDecoder::new(file));
+        reader
+            .lines()
+            .filter_map(|read_line| {
+                let line = read_line.unwrap();
+                let (short, unshort) = line.split_once(",").unwrap();
+                if !unshort.starts_with("http://")
+                    && !unshort.starts_with("https://")
+                // || short.ends_with(|e: char| e.is_ascii_punctuation())
+                // || short.starts_with("http://")
+                {
+                    println!("{short} --> {unshort}");
+                    None
+                } else {
+                    Some((clean_url(short), unshort.to_string()))
+                }
+            })
+            .collect()
+    } else {
+        HashMap::<String, String>::new()
+    };
+    let short_unshort = Arc::new(Mutex::new(init));
+
+    let file = File::open("sponsoredurls.jsonl.gz").unwrap();
     let reader = BufReader::new(GzDecoder::new(file));
 
     let client = ClientBuilder::new(
@@ -65,7 +100,6 @@ async fn main() {
     ))
     .build();
 
-    let short_unshort = Arc::new(Mutex::new(HashMap::<String, String>::new()));
     let tmp = Arc::clone(&short_unshort);
 
     let mut start = std::time::Instant::now();
@@ -73,11 +107,11 @@ async fn main() {
         .lines()
         .enumerate()
         .flat_map(|(i, read_line)| {
-            if i != 0 && i % 100_000 == 0 {
+            if i != 0 && i % 10_000 == 0 {
                 println!("processed {i} lines in {:?}", start.elapsed());
                 start = std::time::Instant::now();
 
-                let file = File::create("bit_ly.csv.gz").unwrap();
+                let file = File::create("tiny_cc.csv.gz").unwrap();
                 let mut writer = BufWriter::new(GzEncoder::new(
                     file,
                     Compression::default(),
@@ -97,15 +131,7 @@ async fn main() {
             urls
         })
         .filter_map(|url| {
-            if !url.contains("bit.ly") {
-                return None;
-            }
-
-            if url.starts_with("http://") || url.starts_with("https://") {
-                Some(url)
-            } else {
-                Some("http://".to_string() + &url)
-            }
+            if url.contains("tiny.cc") { Some(clean_url(&url)) } else { None }
         });
 
     let reqs = stream::iter(urls)
@@ -116,11 +142,11 @@ async fn main() {
                 async move { unshorten(url, client, short_unshort).await },
             )
         })
-        .buffer_unordered(32);
+        .buffer_unordered(1);
 
     reqs.collect::<Vec<_>>().await;
 
-    let file = File::create("bit_ly.csv.gz").unwrap();
+    let file = File::create("tiny_cc.csv.gz").unwrap();
     let mut writer =
         BufWriter::new(GzEncoder::new(file, Compression::default()));
     let buf = short_unshort

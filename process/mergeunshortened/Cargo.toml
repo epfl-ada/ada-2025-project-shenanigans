@@ -1,5 +1,5 @@
 [package]
-name = "education"
+name = "mergeunshortened"
 version.workspace = true
 edition.workspace = true
 
