@@ -1,5 +1,5 @@
 [workspace]
-members = ["domains" , "wikipedia"]
+members = ["domains" , "sbcoverage", "wikipedia"]
 resolver = "3"
 
 [workspace.package]

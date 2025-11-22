@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "ltriang", "tograph", "tocategories", "tochannels", "filtercats", "education", "tags", "tolangs", "tourls", "todomains", "unshorten",
+  "tourls", "todomains", "unshorten", "filterspon", "mergeunshortened", "tmp",
 ]
 resolver = "3"
 
