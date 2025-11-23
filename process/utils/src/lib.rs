@@ -2,6 +2,30 @@ use serde::Serialize;
 use std::collections::HashSet;
 use std::io::BufRead;
 
+pub const CATEGORIES: [&str; 16] = [
+    "",
+    "Autos & Vehicles",
+    "Comedy",
+    "Education",
+    "Entertainment",
+    "Film & Animation",
+    "Gaming",
+    "Howto & Style",
+    "Music",
+    "News & Politics",
+    "Nonprofits & Activism",
+    "People & Blogs",
+    "Pets & Animals",
+    "Science & Technology",
+    "Sports",
+    "Travel & Events",
+];
+
+pub const YEARS: [u16; 15] = [
+    2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
+    2017, 2018, 2019,
+];
+
 pub fn make_sponsor_set<T: BufRead>(
     reader: T,
 ) -> Result<HashSet<String>, std::io::Error> {

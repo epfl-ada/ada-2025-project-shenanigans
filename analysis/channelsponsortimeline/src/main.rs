@@ -4,18 +4,21 @@ use std::io::BufReader;
 
 use charming::{
     Chart, HtmlRenderer,
-    component::{Axis, Grid, GridTooltip, Title},
-    datatype::DataFrame,
-    element::{AxisType, ItemStyle, TextAlign, Tooltip, Trigger},
+    component::{Axis, Grid, Title},
+    element::{
+        AxisType, Easing, Emphasis, EmphasisFocus, Formatter, JsFunction,
+        TextAlign, Tooltip, Trigger,
+    },
     series::{Series, bar},
     theme::Theme,
 };
 use chrono::{DateTime, Utc};
 use flate2::read::GzDecoder;
 use ndarray::prelude::*;
-use ndarray_stats::{HistogramExt, histogram};
 use noisy_float::prelude::*;
 use serde::Deserialize;
+
+use plot_utils::compute_histogram;
 
 #[derive(Deserialize)]
 struct Videos {
@@ -52,20 +55,8 @@ fn main() {
         .map(|e| n64(e.num_days() as f64))
         .collect();
     let diffs = Array1::from_vec(diffs);
-    let diff_min = *diffs.iter().min().unwrap();
-    let diff_max = *diffs.iter().max().unwrap();
 
-    let lin = Array1::linspace(diff_min, diff_max, 100);
-    let bins = histogram::Bins::new(lin.clone().into());
-    let grid = histogram::Grid::from(vec![bins]);
-
-    let histogram = diffs.insert_axis(Axis(1)).histogram(grid);
-
-    let data: DataFrame = lin
-        .iter()
-        .zip(histogram.counts())
-        .map(|(x, y)| vec![x.raw(), *y as f64].into())
-        .collect();
+    let data = compute_histogram(diffs, 101, true, false);
 
     let chart = Chart::new()
         .title(
@@ -76,13 +67,22 @@ fn main() {
         )
         .tooltip(Tooltip::new().trigger(Trigger::Item))
         .animation_duration(1500.0)
-        .x_axis(Axis::new().name("days"))
-        .y_axis(Axis::new().name("channels").type_(AxisType::Log))
-        .grid(Grid::new().tooltip(GridTooltip::new().trigger(Trigger::Axis)))
+        .animation_easing(Easing::CubicInOut)
+        .x_axis(Axis::new().name("days").type_(AxisType::Log))
+        .y_axis(Axis::new().name("channels"))
+        .grid(Grid::new())
         .series(Series::Bar(
             bar::Bar::new()
-                .bar_width(3)
-                .item_style(ItemStyle::new().border_radius(50))
+                .bar_width("100%")
+                .tooltip(Tooltip::new().trigger(Trigger::Item).formatter(
+                    Formatter::Function(JsFunction::new_with_args(
+                        "param",
+                        r#"
+                        return param.data[1].toString() + " channels";
+                        "#,
+                    )),
+                ))
+                .emphasis(Emphasis::new().focus(EmphasisFocus::Adjacency))
                 .data(data),
         ));
 
