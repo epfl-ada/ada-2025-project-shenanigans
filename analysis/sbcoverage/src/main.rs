@@ -3,14 +3,12 @@ use std::io::BufWriter;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use charming::component::{Grid, GridTooltip};
-use charming::element::{BoundaryGap, Symbol};
 use charming::{
     Chart, HtmlRenderer,
-    component::{Axis, Legend, Title},
+    component::{Axis, Grid, GridTooltip, Legend, Title},
     element::{
-        AreaStyle, AxisTick, AxisType, Emphasis, EmphasisFocus, Formatter,
-        ItemStyle, JsFunction, TextAlign, Tooltip, Trigger,
+        AreaStyle, AxisTick, AxisType, BoundaryGap, Emphasis, EmphasisFocus,
+        Formatter, JsFunction, TextAlign, Tooltip, Trigger,
     },
     series::Line,
     theme::Theme,
@@ -136,31 +134,6 @@ fn main() {
     let totals: [u32; YEARS.len()] = std::array::from_fn(|i| {
         year_spon.iter().map(|e| e[i].iter().sum::<u32>()).sum()
     });
-    let tooltip_fn = format!(
-        r#"
-        console.log(param)
-        console.log(param.data)
-        const totals = {:?};
-        const count = Math.round(totals[param.dataIndex] * param.data);
-        const label = count.toString()
-            + " / "
-            + totals[param.dataIndex]
-            + " ("
-            + param.data.toFixed(3)
-            + "%)";
-        return label;
-        "#,
-        totals
-    );
-
-    // let symbol_fn = format!(
-    //     r#"
-    //     const icons = {:?};
-    //     console.log(param);
-    //     return "path://" + icons[param.seriesIndex];
-    //     "#,
-    //     PATHS
-    // );
 
     let data: Vec<Vec<f64>> = year_spon
         .iter()
@@ -172,21 +145,7 @@ fn main() {
         })
         .collect();
 
-    let tooltip =
-        Tooltip::new()
-            .trigger(Trigger::Item)
-            .formatter(Formatter::Function(JsFunction::new_with_args(
-                "param",
-                &tooltip_fn,
-            )));
-    let emphasis = Emphasis::new().focus(EmphasisFocus::Series);
-    let item_style = ItemStyle::new();
-    let area_style = AreaStyle::new().opacity(0.5);
-    let symbol_size = 8;
-    let symbol = Symbol::Circle;
-    // Symbol::Callback(JsFunction::new_with_args("value, param", &symbol_fn));
-
-    let chart = Chart::new()
+    let mut chart = Chart::new()
         .title(
             Title::new()
                 .text("SponsorBlock Videos")
@@ -213,199 +172,44 @@ fn main() {
                     .map(|(c, p)| (c.to_string(), "path://".to_string() + p))
                     .collect(),
             ),
-        )
-        .series(
-            Line::new()
-                .name("Misc")
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[0].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[1])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[1].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[2])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[2].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[3])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[3].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[4])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[4].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[5])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[5].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[6])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[6].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[7])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[7].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[8])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[8].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[9])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[9].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[10])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[10].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[11])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[11].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[12])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[12].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[13])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[13].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[14])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[14].clone()),
-        )
-        .series(
-            Line::new()
-                .name(CATEGORIES[15])
-                .stack("videos")
-                .tooltip(tooltip.clone())
-                .emphasis(emphasis.clone())
-                .item_style(item_style.clone())
-                .area_style(area_style.clone())
-                .symbol_size(symbol_size)
-                .symbol(symbol.clone())
-                .data(data[15].clone()),
         );
+
+    let tooltip_fn = format!(
+        r#"
+        console.log(param)
+        console.log(param.data)
+        const totals = {:?};
+        const count = Math.round(totals[param.dataIndex] * param.data);
+        const label = count.toString()
+            + " / "
+            + totals[param.dataIndex]
+            + " ("
+            + param.data.toFixed(3)
+            + "%)";
+        return label;
+        "#,
+        totals
+    );
+    let tooltip =
+        Tooltip::new()
+            .trigger(Trigger::Item)
+            .formatter(Formatter::Function(JsFunction::new_with_args(
+                "param",
+                &tooltip_fn,
+            )));
+
+    for (&c, d) in CATEGORIES.iter().zip(data) {
+        chart = chart.series(
+            Line::new()
+                .name(if c == "" { "Misc" } else { c })
+                .stack("videos")
+                .tooltip(tooltip.clone())
+                .emphasis(Emphasis::new().focus(EmphasisFocus::Series))
+                .area_style(AreaStyle::new().opacity(0.5))
+                .symbol_size(8)
+                .data(d),
+        );
+    }
 
     let mut renderer =
         HtmlRenderer::new("sbbar", 900, 600).theme(Theme::Custom(
