@@ -1,5 +1,5 @@
 [package]
-name = "channelsponsortimeline"
+name = "channelsponsorsubs"
 version.workspace = true
 edition.workspace = true
 
