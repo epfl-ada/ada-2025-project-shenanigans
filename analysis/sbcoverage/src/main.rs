@@ -127,7 +127,10 @@ fn main() {
                 CATEGORIES
                     .iter()
                     .zip(PATHS)
-                    .map(|(c, p)| (c.to_string(), "path://".to_string() + p))
+                    .map(|(c, p)| {
+                        let cn = if c.is_empty() { "Misc" } else { c };
+                        (cn.to_string(), "path://".to_string() + p)
+                    })
                     .collect(),
             ),
         );
@@ -161,7 +164,7 @@ fn main() {
                 .stack("videos")
                 .tooltip(tooltip.clone())
                 .emphasis(Emphasis::new().focus(EmphasisFocus::Series))
-                .area_style(AreaStyle::new().opacity(0.5))
+                .area_style(AreaStyle::new().opacity(0.2))
                 .symbol_size(8)
                 .data(d),
         );

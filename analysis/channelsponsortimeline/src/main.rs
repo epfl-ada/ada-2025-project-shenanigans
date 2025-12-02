@@ -5,9 +5,10 @@ use std::io::BufReader;
 use charming::{
     Chart, HtmlRenderer,
     component::{Axis, Grid, Title},
+    datatype::DataFrame,
     element::{
-        AxisType, Easing, Emphasis, EmphasisFocus, Formatter, JsFunction,
-        TextAlign, Tooltip, Trigger,
+        AxisLabel, AxisType, Easing, Emphasis, EmphasisFocus, Formatter,
+        JsFunction, TextAlign, Tooltip, Trigger,
     },
     series::{Series, bar},
     theme::Theme,
@@ -18,7 +19,7 @@ use ndarray::prelude::*;
 use noisy_float::prelude::*;
 use serde::Deserialize;
 
-use plot_utils::compute_histogram;
+use plot_utils::{compute_histogram, xy_to_df};
 
 #[derive(Deserialize)]
 struct Videos {
@@ -37,57 +38,97 @@ fn main() {
     let sponvids: HashMap<String, Videos> =
         serde_json::from_reader(reader).unwrap();
 
-    let diffs: Vec<N64> = sponvids
+    let (diffs, nbef): (Vec<N64>, Vec<N64>) = sponvids
         .values()
         .filter_map(|videos| {
-            let Some(first_nspon) = videos.not_sponsored.first() else {
+            let [ref first_nspon, ..] = videos.not_sponsored[..] else {
                 return None;
             };
-            let Some(first_spon) = videos.sponsored.first() else {
+            let [ref first_spon, ..] = videos.sponsored[..] else {
                 return None;
             };
-            if first_spon.upload_date < first_nspon.upload_date {
-                None
+            if first_spon.upload_date > first_nspon.upload_date {
+                Some((
+                    first_spon.upload_date - first_nspon.upload_date,
+                    videos.not_sponsored.len(),
+                ))
             } else {
-                Some(first_spon.upload_date - first_nspon.upload_date)
+                None
             }
         })
-        .map(|e| n64(e.num_days() as f64))
+        .map(|(d, n)| (n64(d.num_days() as f64), n64(n as f64)))
         .collect();
-    let diffs = Array1::from_vec(diffs);
 
-    let data = compute_histogram(diffs, 101, true, false);
+    let stats: Vec<(String, Array1<N64>)> = ["days", "videos"]
+        .iter()
+        .zip([diffs, nbef])
+        .map(|(n, d)| (n.to_string(), Array1::from_vec(d)))
+        .collect();
 
-    let chart = Chart::new()
+    let mut chart = Chart::new()
         .title(
             Title::new()
-                .text("Days Before First Sponsored Video")
+                .text("Time Before First Sponsored Video")
                 .text_align(TextAlign::Center)
                 .left("50%"),
         )
         .tooltip(Tooltip::new().trigger(Trigger::Item))
         .animation_duration(1500.0)
         .animation_easing(Easing::CubicInOut)
-        .x_axis(Axis::new().name("days").type_(AxisType::Log))
-        .y_axis(Axis::new().name("channels"))
-        .grid(Grid::new())
-        .series(Series::Bar(
-            bar::Bar::new()
-                .bar_width("100%")
-                .tooltip(Tooltip::new().trigger(Trigger::Item).formatter(
-                    Formatter::Function(JsFunction::new_with_args(
-                        "param",
-                        r#"
-                        return param.data[1].toString() + " channels";
-                        "#,
-                    )),
-                ))
-                .emphasis(Emphasis::new().focus(EmphasisFocus::Adjacency))
-                .data(data),
-        ));
+        .grid(Grid::new().right("57%"))
+        .grid(Grid::new().left("57%"));
+
+    let data: Vec<(String, DataFrame, f64)> = stats
+        .into_iter()
+        .map(|(n, d)| {
+            let (x, mut y) = compute_histogram(d, 101, true, false, None, None);
+            let sum = y.sum();
+            y.iter_mut().for_each(|e| *e /= sum);
+            (n, xy_to_df(x, y), sum.raw())
+        })
+        .collect();
+
+    let axis_label = AxisLabel::new().formatter(Formatter::Function(
+        JsFunction::new_with_args(
+            "value, index",
+            r#"return value.toExponential().replace("+","");"#,
+        ),
+    ));
+
+    for (i, (n, d, a)) in data.into_iter().enumerate() {
+        chart = chart
+            .x_axis(
+                Axis::new()
+                    .name(n.clone())
+                    .type_(AxisType::Log)
+                    .axis_label(axis_label.clone())
+                    .grid_index(i as f64),
+            )
+            .y_axis(Axis::new().name("channel density").grid_index(i as f64))
+            .series(Series::Bar(
+                bar::Bar::new()
+                    .bar_width("100%")
+                    .x_axis_index(i as f64)
+                    .y_axis_index(i as f64)
+                    .tooltip(Tooltip::new().trigger(Trigger::Item).formatter(
+                        Formatter::Function(JsFunction::new_with_args(
+                            "param",
+                            &format!(
+                                r#"
+                                const chan = Math.round(param.data[1] * {});
+                                return chan.toString() + " channels";
+                                "#,
+                                a
+                            ),
+                        )),
+                    ))
+                    .emphasis(Emphasis::new().focus(EmphasisFocus::Adjacency))
+                    .data(d),
+            ));
+    }
 
     let mut renderer =
-        HtmlRenderer::new("dtbar", 900, 600).theme(Theme::Custom(
+        HtmlRenderer::new("dtbar", 1200, 600).theme(Theme::Custom(
             "sheNaNigans",
             include_str!("../../theme/sheNaNigans.js"),
         ));

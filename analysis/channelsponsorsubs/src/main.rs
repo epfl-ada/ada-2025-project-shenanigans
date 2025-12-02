@@ -2,13 +2,14 @@ use std::fs::File;
 use std::io::BufReader;
 use std::{collections::HashMap, io::BufRead};
 
+use charming::component::Legend;
 use charming::{
     Chart, HtmlRenderer,
     component::{Axis, Grid, Title},
     datatype::DataFrame,
     element::{
-        AxisLabel, AxisType, Easing, Emphasis, EmphasisFocus, Formatter,
-        JsFunction, TextAlign, Tooltip, Trigger,
+        AxisLabel, AxisType, Emphasis, EmphasisFocus, Formatter, JsFunction,
+        TextAlign, Tooltip, Trigger,
     },
     series::{Series, bar},
     theme::Theme,
@@ -19,8 +20,8 @@ use ndarray::prelude::*;
 use noisy_float::prelude::*;
 use serde::Deserialize;
 
-use plot_utils::{compute_histogram, describe};
-use utils::line_progress;
+use plot_utils::{COLOURS, PATHS, compute_histogram, xy_to_df};
+use utils::{CATEGORIES, line_progress};
 
 #[derive(Deserialize)]
 struct Videos {
@@ -39,6 +40,7 @@ struct ChannelTimePoint {
     subs: f64,
     videos: f64,
     activity: f64,
+    category: usize,
 }
 
 fn main() {
@@ -69,7 +71,13 @@ fn main() {
             return;
         }
 
-        let date_str = splits.nth(1).unwrap();
+        let cat_str = splits.next().unwrap();
+        let Some(category) = CATEGORIES.iter().position(|&e| e == cat_str)
+        else {
+            return;
+        };
+
+        let date_str = splits.next().unwrap();
         let parsed =
             NaiveDateTime::parse_from_str(&date_str, "%Y-%m-%d %H:%M:%S")
                 .unwrap();
@@ -89,14 +97,16 @@ fn main() {
             subs,
             videos,
             activity,
+            category,
         });
     });
 
-    let (view_thresh, sub_thresh, vid_thresh, act_thresh): (
+    let (view_thresh, sub_thresh, vid_thresh, act_thresh, cats): (
         Vec<N64>,
         Vec<N64>,
         Vec<N64>,
         Vec<N64>,
+        Vec<usize>,
     ) = sponvids
         .iter()
         .filter_map(|(channel_id, videos)| {
@@ -110,6 +120,7 @@ fn main() {
                 subs,
                 videos,
                 activity,
+                category,
                 ..
             } = points
                 .iter()
@@ -119,22 +130,28 @@ fn main() {
                     delta_a.cmp(&delta_b)
                 })
                 .unwrap();
-            Some((n64(*views), n64(*subs), n64(*videos), n64(*activity)))
+            Some((
+                n64(*views),
+                n64(*subs),
+                n64(*videos),
+                n64(*activity),
+                category,
+            ))
         })
         .collect();
 
-    let stats: Vec<(String, Array1<N64>)> =
+    let stats: Vec<(String, Vec<N64>)> =
         ["views", "subscribers", "videos", "activity"]
             .iter()
             .zip([view_thresh, sub_thresh, vid_thresh, act_thresh])
-            .map(|(n, d)| (n.to_string(), Array1::from_vec(d)))
+            .map(|(n, d)| (n.to_string(), d))
             .collect();
 
-    stats.iter().for_each(|(n, d)| {
-        println!("{n}");
-        describe(d);
-        println!();
-    });
+    // stats.iter().for_each(|(n, d)| {
+    //     println!("{n}");
+    //     describe(d);
+    //     println!();
+    // });
 
     let mut chart = Chart::new()
         .title(
@@ -144,18 +161,58 @@ fn main() {
                 .left("50%"),
         )
         .tooltip(Tooltip::new().trigger(Trigger::Item))
-        .animation_duration(1500.0)
-        .animation_easing(Easing::CubicInOut)
+        // .animation_duration(1500.0)
+        // .animation_easing(Easing::CubicInOut)
         .grid(Grid::new().right("57%").bottom("57%"))
         .grid(Grid::new().left("57%").bottom("57%"))
         .grid(Grid::new().right("57%").top("57%"))
         .grid(Grid::new().left("57%").top("57%"));
 
-    let data: Vec<(String, DataFrame)> = stats
+    let data: Vec<(String, Vec<(String, DataFrame, f64)>)> = stats
         .into_iter()
         .map(|(n, d)| {
-            let log_y = n == "activity";
-            (n, compute_histogram(d, 101, true, log_y))
+            let d: Vec<N64> = d.into_iter().filter(|e| *e > 0.0).collect();
+            let d_min = *d.iter().min().unwrap();
+            let d_max = *d.iter().max().unwrap();
+
+            let hist = (0..=CATEGORIES.len())
+                .filter_map(|c| {
+                    let filtered = if c == CATEGORIES.len() {
+                        Array1::from_vec(d.clone())
+                    } else {
+                        Array1::from_iter(
+                            d.iter().cloned().zip(cats.iter()).filter_map(
+                                |(dp, dc)| {
+                                    if *dc == c { Some(dp) } else { None }
+                                },
+                            ),
+                        )
+                    };
+
+                    let cn = if c == CATEGORIES.len() {
+                        "All".to_string()
+                    } else {
+                        CATEGORIES[c].to_string()
+                    };
+
+                    let log_y = n == "activity";
+                    let (x, mut y) = compute_histogram(
+                        filtered,
+                        101,
+                        true,
+                        log_y,
+                        Some(d_min),
+                        Some(d_max),
+                    );
+                    let sum = y.sum();
+                    if sum == 0.0 {
+                        return None;
+                    }
+                    y.iter_mut().for_each(|e| *e /= sum);
+                    Some((cn, xy_to_df(x, y), sum.raw()))
+                })
+                .collect();
+            (n, hist)
         })
         .collect();
 
@@ -165,14 +222,6 @@ fn main() {
             r#"return value.toExponential().replace("+","");"#,
         ),
     ));
-
-    let log_y_tooltip_fn = r#"
-        const chan = Math.round(Math.pow(10, param.data[1]));
-        return chan.toString() + " channels";
-        "#;
-    let tooltip_fn = r#"
-        return param.data[1].toString() + " channels";
-        "#;
 
     for (i, (n, d)) in data.into_iter().enumerate() {
         chart = chart
@@ -186,12 +235,14 @@ fn main() {
             .y_axis(
                 Axis::new()
                     .name(if n == "activity" {
-                        "log10 channels"
+                        "log10 channel density"
                     } else {
-                        "channels"
+                        "channel density"
                     })
                     .grid_index(i as f64),
-            )
+            );
+        for (cn, cd, ca) in d.into_iter().rev() {
+            chart = chart
             .series(Series::Bar(
                 bar::Bar::new()
                     .bar_width("100%")
@@ -200,17 +251,47 @@ fn main() {
                     .tooltip(Tooltip::new().trigger(Trigger::Item).formatter(
                         Formatter::Function(JsFunction::new_with_args(
                             "param",
-                            if n == "activity" {
-                                log_y_tooltip_fn
+                            &if n == "activity" {
+                                format!(
+                                    r#"
+                                    const chan = Math.round(Math.pow(10, param.data[1] * {}));
+                                    return chan.toString() + " channels";
+                                    "#,
+                                    ca
+                                )
                             } else {
-                                tooltip_fn
+                                format!(
+                                    r#"
+                                    const chan = Math.round(param.data[1] * {});
+                                    return chan.toString() + " channels";
+                                    "#,
+                                    ca
+                                )
                             },
                         )),
                     ))
-                    .emphasis(Emphasis::new().focus(EmphasisFocus::Adjacency))
-                    .data(d),
+                    .emphasis(Emphasis::new().focus(EmphasisFocus::Series))
+                    .name(if cn.is_empty() { "Misc".to_string() } else { cn })
+                    .data(cd),
             ));
+        }
     }
+
+    let mut leg = vec![("All".to_string(), "circle".to_string())];
+    leg.extend(CATEGORIES.iter().zip(PATHS).map(|(c, p)| {
+        let name = if c.is_empty() { "Misc" } else { c };
+        (name.to_string(), "path://".to_string() + p)
+    }));
+    chart = chart
+        .legend(
+            Legend::new()
+                .top("bottom")
+                .selected(leg.iter().map(|(e, _)| {
+                    (e, ["All", "Entertainment"].contains(&e.as_str()))
+                }))
+                .data(leg),
+        )
+        .color(COLOURS.into_iter().rev().collect::<Vec<&str>>());
 
     let mut renderer = HtmlRenderer::new("big", 900, 600).theme(Theme::Custom(
         "sheNaNigans",
