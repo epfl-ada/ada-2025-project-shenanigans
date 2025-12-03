@@ -1,5 +1,7 @@
 from pathlib import Path
 import pandas as pd
+from typing import Tuple
+from numpy.typing import NDArray
 
 
 datapath = Path("../../dataset")
@@ -7,11 +9,12 @@ datapath = Path("../../dataset")
 SPONSORED_CHANNELS_FILE = datapath / "sponsoredchannels.json"
 METADATA_FILE   = datapath / "yt_metadata_en.jsonl.gz"
 
-output_path = datapath / "data_rq3_second_plot.csv.gz"
+# output_path = datapath / "data_rq3_second_plot.csv.gz"
+output_path = datapath / "data_rq3_second_plot_10.csv.gz"
 
 
 ## step 1
-def load_metadata() -> pd.DataFrame:
+def load_metadata() -> Tuple[pd.DataFrame, NDArray]:
     """
     Create df with metadata of all videos from channels found in SponsorBlock. 
     """
@@ -21,14 +24,20 @@ def load_metadata() -> pd.DataFrame:
     df_sc.columns = ["video_ids"]
     df_sc.reset_index(inplace=True)
     df_sc.rename(columns={"index": "channel_id"}, inplace=True)
-
+    
+    # keep only channels with at least 10 videos in SponsorBlock
+    df_gt10 = df_sc[df_sc["video_ids"].apply(len) >= 10]
+    df_videos = df_gt10.explode("video_ids").rename(columns={"video_ids": "display_id"})
+    """
     # one line per "display_id" (keeping "channel_id" as a column)
     df_videos = df_sc.explode("video_ids").rename(columns={"video_ids": "display_id"})
-
+    """
+    
     # remove duplicates (if any)
     df_videos = df_videos.drop_duplicates(subset=["channel_id", "display_id"])
 
     sponsored_channel_ids = df_videos["channel_id"].unique()
+    sponsored_videos_ids = df_videos["display_id"].unique()
     
     selected_chunks = []
 
@@ -58,13 +67,13 @@ def load_metadata() -> pd.DataFrame:
 
     df_meta_sponsor = pd.concat(selected_chunks, ignore_index=True)
 
-    return df_meta_sponsor
+    return df_meta_sponsor, sponsored_videos_ids
 
 
 ## step 2
-def add_sponsored_column(
+def add_columns(
     df_step1: pd.DataFrame,
-    sponsored_videos_ids: pd.DataFrame
+    sponsored_videos_ids: NDArray
     ) -> pd.DataFrame:
     """
     Add "like_dislike_ratio" and "sponsored" columns.
@@ -87,14 +96,13 @@ def build_csv_second_plot_rq3(
     """
     Process using the two functions above.
     """
-    df_step1 = load_metadata()
+    df_step1, sponsored_videos_ids = load_metadata()
     print("step 1 done: sponsored videos loaded")
     if verbose:
         print("shape: ", df_step1.shape)
         print("columns: ", df_step1.columns)
 
-    sponsored_videos_ids = df_step1["display_id"].unique()
-    df = add_sponsored_column(df_step1, sponsored_videos_ids)
+    df = add_columns(df_step1, sponsored_videos_ids)
     print("step 2 done: metadata gathered")
     if verbose:
         print("shape: ", df.shape)
