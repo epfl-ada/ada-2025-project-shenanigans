@@ -1,0 +1,11 @@
+[package]
+name = "ltriang"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+flate2.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+regex.workspace = true
+petgraph.workspace = true
