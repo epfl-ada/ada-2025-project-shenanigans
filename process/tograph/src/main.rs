@@ -42,6 +42,7 @@ const LEIDEN_COLOURS: [[u8; 3]; 14] = [
 #[derive(Debug, Serialize, Deserialize)]
 struct SerProps {
     id: usize,
+    s: f64,
     c: [u8; 3],
     l: [u8; 3],
     a: [u8; 3],
@@ -122,8 +123,9 @@ fn main() {
         .node_indices()
         .zip(n_nei)
         .map(|(e, n)| {
-            let conc: RGBColor =
-                cmap.transform_single(f64::powf(n as f64 / max_nei, 0.25));
+            let s = f64::powf(n as f64 / max_nei, 0.25);
+
+            let conc: RGBColor = cmap.transform_single(s);
 
             let lind =
                 leiden.iter().position(|l| l.contains(&e.index())).unwrap();
@@ -151,6 +153,7 @@ fn main() {
             let id = e.index();
             SerProps {
                 id: id,
+                s: s,
                 c: [conc.int_r(), conc.int_g(), conc.int_b()],
                 l: leic,
                 a: catc,
