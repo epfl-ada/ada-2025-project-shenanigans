@@ -1,19 +1,22 @@
 use std::io::Write;
 use std::{cell::RefCell, rc::Rc};
 
-use deser::{SerCol, SerGraph};
+use deser::SerProps;
 use edge::AdaEdgeShape;
 use eframe::{App, CreationContext};
 use egui::{Color32, Context, Pos2};
 use egui_graphs::{
-    Graph, GraphView, SettingsInteraction, SettingsNavigation, events::Event,
+    FruchtermanReingoldWithCenterGravity,
+    FruchtermanReingoldWithCenterGravityState, Graph, GraphView,
+    LayoutForceDirected, SettingsInteraction, SettingsNavigation,
+    events::Event,
 };
 use event_filters::EventFilters;
 use flate2::write::GzDecoder;
 use node::AdaNodeShape;
 use petgraph::Undirected;
 use petgraph::csr::DefaultIx;
-use petgraph::stable_graph::StableGraph;
+use petgraph::stable_graph::StableUnGraph;
 use web_sys::{console, window};
 
 mod deser;
@@ -21,8 +24,22 @@ mod edge;
 mod event_filters;
 mod node;
 
+type S = FruchtermanReingoldWithCenterGravityState;
+type L = LayoutForceDirected<FruchtermanReingoldWithCenterGravity>;
+type GV<'a> = GraphView<
+    'a,
+    String,
+    usize,
+    Undirected,
+    u32,
+    AdaNodeShape,
+    AdaEdgeShape,
+    S,
+    L,
+>;
+
 pub struct Adapp {
-    g: Graph<(), (), Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape>,
+    g: Graph<String, usize, Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape>,
     events_buf: Rc<RefCell<Vec<Event>>>,
     event_filters: EventFilters,
 }
@@ -45,15 +62,15 @@ impl Adapp {
             match e {
                 Event::NodeDoubleClick(n) => {
                     if let Some(w) = window() {
-                        w.open_with_url(&format!(
-                            "https://www.youtube.com/channel/{}",
+                        let url = format!(
+                            "https://{}",
                             self.g
                                 .node((n.id as u32).into())
                                 .unwrap()
                                 .props()
                                 .label
-                        ))
-                        .unwrap();
+                        );
+                        w.open_with_url(&url).unwrap();
                     }
                 }
                 _ => {}
@@ -70,12 +87,12 @@ impl Adapp {
 impl App for Adapp {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ctx.set_visuals(egui::Visuals::light());
+            ctx.set_visuals(egui::Visuals::dark());
             ctx.style_mut(|style| {
                 style.visuals.widgets.inactive.fg_stroke.color = Color32::GRAY;
             });
 
-            let mut view = GraphView::<_, _, _, _, _, _>::new(&mut self.g)
+            let mut view = GV::new(&mut self.g)
                 .with_navigations(
                     &SettingsNavigation::default()
                         .with_fit_to_screen_enabled(false)
@@ -87,6 +104,13 @@ impl App for Adapp {
                 )
                 .with_event_sink(&self.events_buf);
 
+            let mut state = GV::get_layout_state(ui);
+            state.base.is_running = true;
+            state.base.dt = 0.0001;
+            state.base.damping = 0.5;
+            state.base.k_scale = 1.2;
+            GV::set_layout_state(ui, state);
+
             ui.add(&mut view);
         });
 
@@ -95,48 +119,45 @@ impl App for Adapp {
 }
 
 fn generate_graph()
--> Graph<(), (), Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape> {
-    let gzipped = include_bytes!("../../newtmp.json.gz");
+-> Graph<String, usize, Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape> {
+    let gzipped = include_bytes!("../../sitegraph.json.gz");
     let mut deco = GzDecoder::new(Vec::new());
     deco.write_all(gzipped).unwrap();
-    let desered: SerGraph =
+    let desered: StableUnGraph<String, usize> =
         serde_json::from_slice(&deco.finish().unwrap()).unwrap();
 
-    let gzipped = include_bytes!("../../colours.json.gz");
+    let gzipped = include_bytes!("../../sitegraphprops.json.gz");
     let mut deco = GzDecoder::new(Vec::new());
     deco.write_all(gzipped).unwrap();
-    let colours: Vec<SerCol> =
+    let colours: Vec<SerProps> =
         serde_json::from_slice(&deco.finish().unwrap()).unwrap();
 
     console::log_1(
-        &format!("loading {} edges", desered.edges.len())
-            .as_str()
+        &format!("loading {} edges", desered.edge_count())
+            .to_string()
             .into(),
     );
-    let mut g = Graph::<
-        (),
-        (),
-        Undirected,
-        DefaultIx,
-        AdaNodeShape,
-        AdaEdgeShape,
-    >::from(&StableGraph::<_, _, Undirected>::from_edges(
-        &desered.edges,
-    ));
+    let mut g = Graph::<_, _, _, _, AdaNodeShape, AdaEdgeShape>::from(&desered);
 
     console::log_1(
-        &format!("loading {} nodes", desered.nodes.len())
-            .as_str()
+        &format!("loading {} nodes", desered.node_count())
+            .to_string()
             .into(),
     );
-    desered.nodes.iter().zip(colours).for_each(|(n, c)| {
-        assert_eq!(n.id, c.id);
-        let node = g.node_mut(n.id.into()).unwrap();
-        node.set_label(n.uid.clone());
-        node.set_location(Pos2 { x: n.x, y: n.y });
-        node.display_mut().set_radius(0.7);
-        node.set_color(Color32::from_rgb(c.c[0], c.c[1], c.c[2]));
-    });
+
+    g.g_mut()
+        .node_weights_mut()
+        .zip(colours)
+        .for_each(|(n, c)| {
+            assert_eq!(n.id().index(), c.id);
+
+            n.set_label(n.payload().clone());
+            n.set_location(Pos2 { x: c.x, y: c.y });
+            n.display_mut().set_radius(2.0);
+            n.set_color(Color32::from_rgb(c.l[0], c.l[1], c.l[2]));
+
+            console::log_1(&format!("{:?}", n.location()).into());
+        });
 
     console::log_1(&"finished loading!".into());
 
