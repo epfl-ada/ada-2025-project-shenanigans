@@ -10,11 +10,17 @@ pub struct AdaEdgeShape {
     default_impl: DefaultEdgeShape,
 }
 
+impl AdaEdgeShape {
+    pub fn set_width(&mut self, width: f32) {
+        self.default_impl.width = width;
+    }
+}
+
 impl<E: Clone> From<EdgeProps<E>> for AdaEdgeShape {
     fn from(props: EdgeProps<E>) -> Self {
-        let mut default_impl = DefaultEdgeShape::from(props);
-        default_impl.width = 0.5;
-        Self { default_impl }
+        Self {
+            default_impl: DefaultEdgeShape::from(props),
+        }
     }
 }
 

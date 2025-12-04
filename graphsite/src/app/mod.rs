@@ -47,27 +47,56 @@ enum Palette {
     Category,
 }
 
+#[derive(PartialEq)]
+enum Radius {
+    Constant,
+    Connectivity,
+}
+
+#[derive(PartialEq)]
+enum Width {
+    Constant,
+    Connectivity,
+}
+
 pub struct Adapp {
     g: Graph<String, usize, Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape>,
     events_buf: Rc<RefCell<Vec<Event>>>,
     event_filters: EventFilters,
     graph_props: Vec<SerProps>,
     selected_palette: Palette,
+    selected_radius: Radius,
+    selected_width: Width,
     show_sidebar: bool,
+    pending_layout_state: Option<S>,
 }
 
 impl Adapp {
     pub fn new(_: &CreationContext<'_>) -> Self {
         let (g, graph_props) = generate_graph();
+
+        let mut state = S::default();
+        state.base.is_running = true;
+        state.base.dt = 0.0001;
+        state.base.damping = 0.5;
+        state.base.k_scale = 1.2;
+
         let mut init = Self {
             g: g,
             events_buf: Rc::new(RefCell::new(Vec::new())),
             event_filters: EventFilters::default(),
             graph_props: graph_props,
             selected_palette: Palette::Connectivity,
+            selected_radius: Radius::Constant,
+            selected_width: Width::Constant,
             show_sidebar: false,
+            pending_layout_state: Some(state),
         };
+
         init.colour_graph();
+        init.size_nodes();
+        init.size_edges();
+
         init
     }
 
@@ -117,6 +146,47 @@ impl Adapp {
 
                 n.set_color(Color32::from_rgb(c[0], c[1], c[2]));
             });
+    }
+
+    fn size_nodes(&mut self) {
+        self.g
+            .g_mut()
+            .node_weights_mut()
+            .zip(self.graph_props.iter())
+            .for_each(|(n, p)| {
+                assert_eq!(n.id().index(), p.id);
+
+                let r = match self.selected_radius {
+                    Radius::Constant => 2.0,
+                    Radius::Connectivity => 4.0 * p.s,
+                };
+
+                n.display_mut().set_radius(r);
+            });
+    }
+
+    fn size_edges(&mut self) {
+        match self.selected_width {
+            Width::Constant => {
+                self.g.g_mut().edge_weights_mut().for_each(|e| {
+                    e.display_mut().set_width(0.5);
+                });
+            }
+            Width::Connectivity => {
+                let max_con = *self
+                    .g
+                    .g()
+                    .edge_weights()
+                    .max_by_key(|e| e.payload())
+                    .unwrap()
+                    .payload() as f32;
+                self.g.g_mut().edge_weights_mut().for_each(|e| {
+                    let c = *e.payload() as f32;
+                    let w = 2.0 * f32::powf(c / max_con, 0.5);
+                    e.display_mut().set_width(w);
+                });
+            }
+        }
     }
 
     fn toggle_sidebar_button(&mut self, ui: &mut Ui) {
@@ -177,6 +247,60 @@ impl Adapp {
                     }
                 },
             );
+
+            CollapsingHeader::new("Node Size").default_open(true).show(
+                ui,
+                |ui| {
+                    let r1 = ui.selectable_value(
+                        &mut self.selected_radius,
+                        Radius::Constant,
+                        "Constant",
+                    );
+                    let r2 = ui.selectable_value(
+                        &mut self.selected_radius,
+                        Radius::Connectivity,
+                        "Connectivity",
+                    );
+
+                    if r1.changed() || r2.changed() {
+                        self.size_nodes();
+                    }
+                },
+            );
+
+            CollapsingHeader::new("Edge Size").default_open(true).show(
+                ui,
+                |ui| {
+                    let r1 = ui.selectable_value(
+                        &mut self.selected_width,
+                        Width::Constant,
+                        "Constant",
+                    );
+                    let r2 = ui.selectable_value(
+                        &mut self.selected_width,
+                        Width::Connectivity,
+                        "Connectivity",
+                    );
+
+                    if r1.changed() || r2.changed() {
+                        self.size_edges();
+                    }
+                },
+            );
+
+            CollapsingHeader::new("Physics").default_open(true).show(
+                ui,
+                |ui| {
+                    let mut state = GV::get_layout_state(ui);
+
+                    ui.add(
+                        egui::Slider::new(&mut state.base.k_scale, 0.2..=3.0)
+                            .text("k scale"),
+                    );
+
+                    GV::set_layout_state(ui, state);
+                },
+            );
         });
     }
 }
@@ -191,9 +315,11 @@ impl App for Adapp {
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            ctx.set_visuals(egui::Visuals::dark());
+            let mut vis = egui::Visuals::dark();
+            vis.panel_fill = Color32::BLACK;
+            ctx.set_visuals(vis);
             ctx.style_mut(|style| {
-                style.visuals.widgets.inactive.fg_stroke.color = Color32::GRAY;
+                style.visuals.widgets.inactive.fg_stroke.color = Color32::WHITE;
             });
 
             let mut view = GV::new(&mut self.g)
@@ -208,12 +334,9 @@ impl App for Adapp {
                 )
                 .with_event_sink(&self.events_buf);
 
-            let mut state = GV::get_layout_state(ui);
-            state.base.is_running = true;
-            state.base.dt = 0.0001;
-            state.base.damping = 0.5;
-            state.base.k_scale = 1.2;
-            GV::set_layout_state(ui, state);
+            if let Some(state) = self.pending_layout_state.take() {
+                GV::set_layout_state(ui, state);
+            }
 
             ui.add(&mut view);
 
@@ -254,12 +377,11 @@ fn generate_graph() -> (G, Vec<SerProps>) {
     g.g_mut()
         .node_weights_mut()
         .zip(graph_props.iter())
-        .for_each(|(n, c)| {
-            assert_eq!(n.id().index(), c.id);
+        .for_each(|(n, p)| {
+            assert_eq!(n.id().index(), p.id);
 
             n.set_label(n.payload().clone());
-            n.set_location(Pos2 { x: c.x, y: c.y });
-            n.display_mut().set_radius(2.0);
+            n.set_location(Pos2 { x: p.x, y: p.y });
 
             console::log_1(&format!("{:?}", n.location()).into());
         });
