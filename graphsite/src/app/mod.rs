@@ -4,7 +4,7 @@ use std::{cell::RefCell, rc::Rc};
 use deser::SerProps;
 use edge::AdaEdgeShape;
 use eframe::{App, CreationContext};
-use egui::{Color32, Context, Pos2};
+use egui::{CollapsingHeader, Color32, Context, Pos2, ScrollArea, Ui};
 use egui_graphs::{
     FruchtermanReingoldWithCenterGravity,
     FruchtermanReingoldWithCenterGravityState, Graph, GraphView,
@@ -37,20 +37,38 @@ type GV<'a> = GraphView<
     S,
     L,
 >;
+type G =
+    Graph<String, usize, Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape>;
+
+#[derive(PartialEq)]
+enum Palette {
+    Connectivity,
+    Leiden,
+    Category,
+}
 
 pub struct Adapp {
     g: Graph<String, usize, Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape>,
     events_buf: Rc<RefCell<Vec<Event>>>,
     event_filters: EventFilters,
+    graph_props: Vec<SerProps>,
+    selected_palette: Palette,
+    show_sidebar: bool,
 }
 
 impl Adapp {
     pub fn new(_: &CreationContext<'_>) -> Self {
-        Self {
-            g: generate_graph(),
+        let (g, graph_props) = generate_graph();
+        let mut init = Self {
+            g: g,
             events_buf: Rc::new(RefCell::new(Vec::new())),
             event_filters: EventFilters::default(),
-        }
+            graph_props: graph_props,
+            selected_palette: Palette::Connectivity,
+            show_sidebar: false,
+        };
+        init.colour_graph();
+        init
     }
 
     fn consume_events(&mut self) {
@@ -82,10 +100,96 @@ impl Adapp {
             push_event(&e);
         }
     }
+
+    fn colour_graph(&mut self) {
+        self.g
+            .g_mut()
+            .node_weights_mut()
+            .zip(self.graph_props.iter())
+            .for_each(|(n, p)| {
+                assert_eq!(n.id().index(), p.id);
+
+                let c = match self.selected_palette {
+                    Palette::Connectivity => p.c,
+                    Palette::Leiden => p.l,
+                    Palette::Category => p.a,
+                };
+
+                n.set_color(Color32::from_rgb(c[0], c[1], c[2]));
+            });
+    }
+
+    fn toggle_sidebar_button(&mut self, ui: &mut Ui) {
+        let g_rect = ui.max_rect();
+        let btn_size = egui::vec2(28.0, 28.0);
+
+        let right_margin = 10.0;
+        let bottom_margin = 10.0;
+        let toggle_pos = Pos2 {
+            x: g_rect.right() - right_margin - btn_size.x,
+            y: g_rect.bottom() - bottom_margin - btn_size.y,
+        };
+
+        let (arrow, tip) = if self.show_sidebar {
+            ("▶", "hide sidebar")
+        } else {
+            ("◀", "show sidebar")
+        };
+
+        egui::Area::new(egui::Id::new("sidebar_toggle"))
+            .order(egui::Order::Middle)
+            .fixed_pos(toggle_pos)
+            .movable(false)
+            .show(ui.ctx(), |ui_area| {
+                ui_area.set_clip_rect(g_rect);
+                let arrow_text = egui::RichText::new(arrow).size(16.0);
+                let response =
+                    ui_area.add_sized(btn_size, egui::Button::new(arrow_text));
+                if response.on_hover_text(tip).clicked() {
+                    self.show_sidebar = !self.show_sidebar;
+                }
+            });
+    }
+
+    fn ui_sidebar(&mut self, ui: &mut Ui) {
+        ScrollArea::vertical().show(ui, |ui| {
+            CollapsingHeader::new("Colours").default_open(true).show(
+                ui,
+                |ui| {
+                    let r1 = ui.selectable_value(
+                        &mut self.selected_palette,
+                        Palette::Connectivity,
+                        "Connectivity",
+                    );
+                    let r2 = ui.selectable_value(
+                        &mut self.selected_palette,
+                        Palette::Leiden,
+                        "Leiden",
+                    );
+                    let r3 = ui.selectable_value(
+                        &mut self.selected_palette,
+                        Palette::Category,
+                        "URL Category",
+                    );
+
+                    if r1.changed() || r2.changed() || r3.changed() {
+                        self.colour_graph();
+                    }
+                },
+            );
+        });
+    }
 }
 
 impl App for Adapp {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
+        if self.show_sidebar {
+            egui::SidePanel::right("right")
+                .default_width(200.0)
+                .min_width(200.0)
+                .show(ctx, |ui| self.ui_sidebar(ui));
+        }
+
         egui::CentralPanel::default().show(ctx, |ui| {
             ctx.set_visuals(egui::Visuals::dark());
             ctx.style_mut(|style| {
@@ -112,54 +216,55 @@ impl App for Adapp {
             GV::set_layout_state(ui, state);
 
             ui.add(&mut view);
+
+            self.toggle_sidebar_button(ui);
         });
 
         self.consume_events();
     }
 }
 
-fn generate_graph()
--> Graph<String, usize, Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape> {
+fn generate_graph() -> (G, Vec<SerProps>) {
     let gzipped = include_bytes!("../../sitegraph.json.gz");
     let mut deco = GzDecoder::new(Vec::new());
     deco.write_all(gzipped).unwrap();
-    let desered: StableUnGraph<String, usize> =
+    let base_graph: StableUnGraph<String, usize> =
         serde_json::from_slice(&deco.finish().unwrap()).unwrap();
 
     let gzipped = include_bytes!("../../sitegraphprops.json.gz");
     let mut deco = GzDecoder::new(Vec::new());
     deco.write_all(gzipped).unwrap();
-    let colours: Vec<SerProps> =
+    let graph_props: Vec<SerProps> =
         serde_json::from_slice(&deco.finish().unwrap()).unwrap();
 
     console::log_1(
-        &format!("loading {} edges", desered.edge_count())
+        &format!("loading {} edges", base_graph.edge_count())
             .to_string()
             .into(),
     );
-    let mut g = Graph::<_, _, _, _, AdaNodeShape, AdaEdgeShape>::from(&desered);
+    let mut g =
+        Graph::<_, _, _, _, AdaNodeShape, AdaEdgeShape>::from(&base_graph);
 
     console::log_1(
-        &format!("loading {} nodes", desered.node_count())
+        &format!("loading {} nodes", base_graph.node_count())
             .to_string()
             .into(),
     );
 
     g.g_mut()
         .node_weights_mut()
-        .zip(colours)
+        .zip(graph_props.iter())
         .for_each(|(n, c)| {
             assert_eq!(n.id().index(), c.id);
 
             n.set_label(n.payload().clone());
             n.set_location(Pos2 { x: c.x, y: c.y });
             n.display_mut().set_radius(2.0);
-            n.set_color(Color32::from_rgb(c.l[0], c.l[1], c.l[2]));
 
             console::log_1(&format!("{:?}", n.location()).into());
         });
 
     console::log_1(&"finished loading!".into());
 
-    g
+    (g, graph_props)
 }
