@@ -6,7 +6,7 @@ use egui_graphs::{DefaultNodeShape, DisplayNode, DrawContext, NodeProps};
 use petgraph::{EdgeType, stable_graph::IndexType};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdaNodeShape {
     default_impl: DefaultNodeShape,
 }
@@ -77,11 +77,11 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<N, E, Ty, Ix>
         res.push(Self::label_shape(
             galley,
             Pos2 {
+                x: circle_center.x,
                 y: circle_center.y - 10.0 * circle_radius,
-                ..circle_center
             },
             circle_radius,
-            Color32::BLACK,
+            Color32::WHITE,
         ));
 
         res

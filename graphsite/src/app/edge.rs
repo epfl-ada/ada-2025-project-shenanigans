@@ -5,7 +5,7 @@ use egui_graphs::{
 use petgraph::{EdgeType, stable_graph::IndexType};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdaEdgeShape {
     default_impl: DefaultEdgeShape,
 }
@@ -13,7 +13,7 @@ pub struct AdaEdgeShape {
 impl<E: Clone> From<EdgeProps<E>> for AdaEdgeShape {
     fn from(props: EdgeProps<E>) -> Self {
         let mut default_impl = DefaultEdgeShape::from(props);
-        default_impl.width = 0.3;
+        default_impl.width = 0.5;
         Self { default_impl }
     }
 }

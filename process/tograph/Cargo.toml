@@ -1,0 +1,13 @@
+[package]
+name = "tograph"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+egui_graphs = "0.28.0"
+fdg = { path = "/home/kalankaboom/Desktop/fdg", features = [ "serde" ] }
+flate2.workspace = true
+petgraph.workspace = true
+scarlet = "1.2.0"
+serde.workspace = true
+serde_json.workspace = true
