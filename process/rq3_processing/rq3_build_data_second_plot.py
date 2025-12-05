@@ -9,11 +9,9 @@ datapath = Path("../../dataset")
 SPONSORED_CHANNELS_FILE = datapath / "sponsoredchannels.json"
 METADATA_FILE   = datapath / "yt_metadata_en.jsonl.gz"
 
-# output_path = datapath / "data_rq3_second_plot.csv.gz"
 output_path = datapath / "data_rq3_second_plot_10.csv.gz"
 
 
-## step 1
 def load_metadata() -> Tuple[pd.DataFrame, NDArray]:
     """
     Create df with metadata of all videos from channels found in SponsorBlock. 
@@ -28,10 +26,6 @@ def load_metadata() -> Tuple[pd.DataFrame, NDArray]:
     # keep only channels with at least 10 videos in SponsorBlock
     df_gt10 = df_sc[df_sc["video_ids"].apply(len) >= 10]
     df_videos = df_gt10.explode("video_ids").rename(columns={"video_ids": "display_id"})
-    """
-    # one line per "display_id" (keeping "channel_id" as a column)
-    df_videos = df_sc.explode("video_ids").rename(columns={"video_ids": "display_id"})
-    """
     
     # remove duplicates (if any)
     df_videos = df_videos.drop_duplicates(subset=["channel_id", "display_id"])
@@ -52,7 +46,8 @@ def load_metadata() -> Tuple[pd.DataFrame, NDArray]:
     for i, chunk in enumerate(meta_chunks):
         print(f"chunk number {i}")
         mask = chunk["channel_id"].isin(sponsored_channel_ids)
-        subset = chunk.loc[mask, ["channel_id",
+        subset = chunk.loc[mask, ["categories",
+                                  "channel_id",
                                   "display_id",
                                   "dislike_count",
                                   "duration",
@@ -70,7 +65,6 @@ def load_metadata() -> Tuple[pd.DataFrame, NDArray]:
     return df_meta_sponsor, sponsored_videos_ids
 
 
-## step 2
 def add_columns(
     df_step1: pd.DataFrame,
     sponsored_videos_ids: NDArray
@@ -88,7 +82,6 @@ def add_columns(
     return df_step1
 
 
-## combine steps 1 and 2
 def build_csv_second_plot_rq3(
     output_file: Path,
     verbose: bool = False

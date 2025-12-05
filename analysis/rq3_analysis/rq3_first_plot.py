@@ -72,8 +72,8 @@ def create_combined_html(
     # titles and labels of the two metrics
     title_views = "Weekly mean log(delta_views + 1) around first sponsor appearance, averaged across multiple channels for each week"
     title_subs = "Weekly mean log(delta_subs + 1) around first sponsor appearance, averaged across multiple channels for each week"
-    y_label_views = "log(delta_views + 1)"
-    y_label_subs = "log(delta_subs + 1)"
+    y_label_views = "Mean log(delta_views + 1)"
+    y_label_subs = "Mean log(delta_subs + 1)"
 
     # limits along y-axis and label position of vertical line (at weeks=0)
     y_min_views = 10.2
@@ -101,82 +101,89 @@ def create_combined_html(
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
   <style>
     :root {{
-      /* Rosé Pine theme */  
-      --rp-base:   #191724;
-      --rp-surface:#1f1d2e;
-      --rp-overlay:#26233a;
-      --rp-muted:  #6e6a86;
-      --rp-subtle: #908caa;
-      --rp-text:   #e0def4;
-      --rp-love:   #eb6f92;
-      --rp-gold:   #f6c177;
-      --rp-rose:   #ebbcba;
-      --rp-pine:   #31748f;
-      --rp-foam:   #9ccfd8;
-      --rp-iris:   #c4a7e7;
+      --bg: #020617;
+      --panel: rgba(15, 23, 42, 0.85);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: rgba(148, 163, 184, 0.3);
+      --accent: #38bdf8;
+      --pill-radius: 999px;
+      --panel-radius: 14px;
+      --font: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }}
+
+    * {{
+      box-sizing: border-box;
     }}
 
     body {{
       margin: 0;
-      padding: 0;
-      width: 100vw;
-      height: 100vh;
-      background: var(--rp-base);
-      color: var(--rp-text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
       align-items: center;
-      box-sizing: border-box;
+      gap: 12px;
     }}
 
     .controls {{
-      margin-top: 16px;
-      margin-bottom: 8px;
       display: flex;
-      gap: 8px;
+      gap: 10px;
+      margin-bottom: 8px;
     }}
 
     .toggle-button {{
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--rp-muted);
-      background: var(--rp-surface);
-      color: var(--rp-text);
-      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: var(--pill-radius);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--text);
+      font-size: 12px;
       cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      transition: all 0.18s ease;
+    }}
+
+    .toggle-button:hover {{
+      transform: translateY(-1px);
+      border-color: rgba(148, 163, 184, 0.65);
     }}
 
     .toggle-button.active {{
-      background: var(--rp-foam);
-      color: var(--rp-base);
-      border-color: var(--rp-foam);
+      background: var(--accent);
+      color: #0b1120;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.25);
       font-weight: 600;
     }}
 
-    .chart-container {{
-      width: 95vw;
-      height: 80vh;
-      position: relative;
-      margin-bottom: 16px;
+    .chart-card {{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--panel-radius);
+      padding: 14px;
+      width: min(1200px, 100%);
+      height: clamp(420px, 60vh, 640px);
+      display: flex;
+      flex-direction: column;
     }}
 
     canvas {{
-      width: 100%;
-      height: 100%;
+      width: 100% !important;
+      height: 100% !important;
+      flex: 1;
       display: block;
     }}
   </style>
 </head>
 <body>
   <div class="controls">
-    <button id="btnViews" class="toggle-button active">Δ views</button>
-    <button id="btnSubs" class="toggle-button">Δ subs</button>
+    <button id="btnViews" class="toggle-button active">views</button>
+    <button id="btnSubs" class="toggle-button">subscribers</button>
   </div>
 
-  <div class="chart-container">
+  <div class="chart-card">
     <canvas id="rq3Chart"></canvas>
   </div>
 
@@ -219,6 +226,126 @@ def create_combined_html(
       }};
     }}
 
+    // animate vertical bar smoothly to corresponding x
+    const snapHoverPlugin = {{
+      id: 'snapHoverPlugin',
+      afterEvent(chart, args) {{
+        const event = args.event;
+        const xScale = chart.scales.x;
+        if (!xScale) return;
+
+        function startLineAnimation() {{
+          if (chart.$lineRaf) {{
+            cancelAnimationFrame(chart.$lineRaf);
+          }}
+
+          const animate = () => {{
+            if (chart.$snapX == null || chart.$snapXTarget == null) {{
+              chart.$lineRaf = null;
+              return;
+            }}
+
+            const dx = chart.$snapXTarget - chart.$snapX;
+
+            if (Math.abs(dx) < 0.5) {{
+              chart.$snapX = chart.$snapXTarget;
+              chart.$lineRaf = null;
+              chart.draw();
+              return;
+            }}
+
+            chart.$snapX += dx * 0.25;
+            chart.draw();
+            chart.$lineRaf = requestAnimationFrame(animate);
+          }};
+
+          chart.$lineRaf = requestAnimationFrame(animate);
+        }}
+
+        if (event.type === 'mousemove') {{
+          const area = chart.chartArea;
+          if (!area) return;
+
+          if (event.x < area.left || event.x > area.right ||
+              event.y < area.top  || event.y > area.bottom) {{
+            chart.$snapX = null;
+            chart.$snapXTarget = null;
+            if (chart.$lineRaf) {{
+              cancelAnimationFrame(chart.$lineRaf);
+              chart.$lineRaf = null;
+            }}
+            chart.setActiveElements([]);
+            chart.tooltip.setActiveElements([], {{ x: 0, y: 0 }});
+            return;
+          }}
+
+          const xValue = xScale.getValueForPixel(event.x);
+          if (xValue == null || isNaN(xValue)) return;
+
+          const data = chart.data.datasets[2].data;
+          if (!data || !data.length) return;
+
+          let nearestIndex = 0;
+          let minDist = Math.abs(xValue - data[0].x);
+          for (let i = 1; i < data.length; i++) {{
+            const d = Math.abs(xValue - data[i].x);
+            if (d < minDist) {{
+              minDist = d;
+              nearestIndex = i;
+            }}
+          }}
+
+          const meta = chart.getDatasetMeta(2);
+          const elem = meta.data[nearestIndex];
+          if (!elem) return;
+
+          if (chart.$snapX == null) {{
+            chart.$snapX = elem.x;
+          }}
+
+          chart.$snapXTarget = elem.x;
+          startLineAnimation();
+
+          chart.setActiveElements([{{ datasetIndex: 2, index: nearestIndex }}]);
+          chart.tooltip.setActiveElements(
+            [{{ datasetIndex: 2, index: nearestIndex }}],
+            {{ x: elem.x, y: event.y }}
+          );
+
+        }} else if (event.type === 'mouseout') {{
+          chart.$snapX = null;
+          chart.$snapXTarget = null;
+          if (chart.$lineRaf) {{
+            cancelAnimationFrame(chart.$lineRaf);
+            chart.$lineRaf = null;
+          }}
+          chart.setActiveElements([]);
+          chart.tooltip.setActiveElements([], {{ x: 0, y: 0 }});
+        }}
+      }}
+    }};
+    
+    // draw the vertical bar
+    const hoverLinePlugin = {{
+      id: 'hoverLinePlugin',
+      afterDatasetsDraw(chart) {{
+        const x = chart.$snapX;
+        if (x == null) return;
+
+        const {{ ctx, chartArea: {{ top, bottom }} }} = chart;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, top);
+        ctx.lineTo(x, bottom);
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.stroke();
+        ctx.restore();
+      }}
+    }};
+
     const ctx = document.getElementById('rq3Chart').getContext('2d');
 
     // we land on delta_views plot by default
@@ -242,19 +369,19 @@ def create_combined_html(
             borderWidth: 0,
             pointRadius: 0,
             fill: {{ target: '-1' }},
-            backgroundColor: 'rgba(110, 106, 134, 0.3)', 
+            backgroundColor: 'rgba(148, 163, 184, 0.25)',
           }},
           {{
             label: yLabelViews,
             data: initial.meanPoints,
-            borderColor: '#9ccfd8', 
+            borderColor: '#38bdf8',
             borderWidth: 2,
-            pointRadius: 4,
+            pointRadius: 3,
             pointHoverRadius: 7,
-            pointBackgroundColor: '#9ccfd8',
-            pointBorderColor: '#9ccfd8',
-            pointHoverBackgroundColor: '#9ccfd8',
-            pointHoverBorderColor: '#e0def4',
+            pointBackgroundColor: '#38bdf8',
+            pointBorderColor: '#38bdf8',
+            pointHoverBackgroundColor: '#38bdf8',
+            pointHoverBorderColor: '#e5e7eb',
             pointHoverBorderWidth: 2,
             tension: 0,
           }}
@@ -264,7 +391,7 @@ def create_combined_html(
         responsive: true,
         maintainAspectRatio: false,
         interaction: {{
-          mode: 'nearest',
+          mode: 'x',
           intersect: false,
           axis: 'xy'
         }},
@@ -273,26 +400,24 @@ def create_combined_html(
             display: true,
             position: 'bottom',
             labels: {{
-              color: '#e0def4',
+              color: '#e5e7eb',
               font: {{
                 size: 12
               }},
               filter: function(item) {{
-                // On cache l'entrée "CI upper"
                 return item.text !== 'CI upper';
               }},
               usePointStyle: true,
               pointStyle: function(context) {{
-                // Mean line: point rond; CI: rectangle
                 return context.datasetIndex === 2 ? 'circle' : 'rect';
               }},
             }}
           }},
           tooltip: {{
-            backgroundColor: '#26233a',
-            titleColor: '#e0def4',
-            bodyColor: '#e0def4',
-            borderColor: '#6e6a86',
+            backgroundColor: 'rgba(15, 23, 42, 0.96)',
+            titleColor: '#e5e7eb',
+            bodyColor: '#e5e7eb',
+            borderColor: 'rgba(148, 163, 184, 0.6)',
             borderWidth: 1,
             displayColors: false,
             padding: 10,
@@ -304,7 +429,6 @@ def create_combined_html(
                 return '';
               }},
               label: function(context) {{
-                // only for mean line
                 if (context.datasetIndex === 2) {{
                   const week = context.parsed.x;
                   const value = context.parsed.y.toFixed(3);
@@ -321,13 +445,13 @@ def create_combined_html(
           title: {{
             display: true,
             text: titleViews,
-            color: '#e0def4',
+            color: '#e5e7eb',
             font: {{
               size: 14
             }},
             padding: {{
-              top: 10,
-              bottom: 20
+              top: 4,
+              bottom: 16
             }}
           }},
           annotation: {{
@@ -338,19 +462,19 @@ def create_combined_html(
                 xMax: 0,
                 yMin: yMinViews,
                 yMax: yMaxViews,
-                borderColor: '#eb6f92',
-                borderWidth: 2,
+                borderColor: '#38bdf8',
+                borderWidth: 3,
                 borderDash: [5, 5]
               }},
               vlineLabel: {{
                 type: 'label',
                 xValue: 0,
                 yValue: yLabelPosViews,
-                backgroundColor: 'rgba(31, 29, 46, 0.8)',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
                 borderWidth: 1,
-                borderColor: '#6e6a86',
-                borderRadius: 4,
-                color: '#e0def4',
+                borderColor: 'rgba(148, 163, 184, 0.6)',
+                borderRadius: 6,
+                color: '#e5e7eb',
                 content: ['First sponsor appearance (week 0)'],
                 font: {{
                   size: 11
@@ -368,13 +492,13 @@ def create_combined_html(
             title: {{
               display: true,
               text: 'Weeks relative to first sponsor',
-              color: '#e0def4',
+              color: '#e5e7eb',
               font: {{
                 size: 13
               }}
             }},
             ticks: {{
-              color: '#908caa',
+              color: '#94a3b8',
               callback: function(value) {{
                 const validTicks = [-25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25];
                 if (validTicks.includes(value)) {{
@@ -384,7 +508,7 @@ def create_combined_html(
               }}
             }},
             grid: {{
-              color: '#26233a',
+              color: 'rgba(15, 23, 42, 0.85)',
               lineWidth: 1
             }}
           }},
@@ -394,21 +518,22 @@ def create_combined_html(
             title: {{
               display: true,
               text: yLabelViews,
-              color: '#e0def4',
+              color: '#e5e7eb',
               font: {{
                 size: 13
               }}
             }},
             ticks: {{
-              color: '#908caa'
+              color: '#94a3b8'
             }},
             grid: {{
-              color: '#26233a',
+              color: 'rgba(15, 23, 42, 0.85)',
               lineWidth: 1
             }}
           }}
         }}
-      }}
+      }},
+      plugins: [snapHoverPlugin, hoverLinePlugin]
     }});
 
     // function to update plot when changing metric
@@ -439,6 +564,16 @@ def create_combined_html(
       rq3Chart.options.plugins.annotation.annotations.vlineLabel.yValue = yLabelPos;
 
       rq3Chart.update();
+
+      // reset snapped line + animation when switching metric
+      rq3Chart.$snapX = null;
+      rq3Chart.$snapXTarget = null;
+      if (rq3Chart.$lineRaf) {{
+        cancelAnimationFrame(rq3Chart.$lineRaf);
+        rq3Chart.$lineRaf = null;
+      }}
+      rq3Chart.setActiveElements([]);
+      rq3Chart.tooltip.setActiveElements([], {{ x: 0, y: 0 }});
     }}
 
     // buttons to toggle between views and subs
