@@ -10,6 +10,8 @@ use scarlet::colormap::ColorMap;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
+use utils::CATEGORIES;
+
 #[derive(Clone, Copy, Debug)]
 enum UrlCat {
     Content,
@@ -39,6 +41,25 @@ const LEIDEN_COLOURS: [[u8; 3]; 14] = [
     [114, 135, 253],
 ];
 
+const CHAN_COLOURS: [[u8; 3]; 16] = [
+    [4, 165, 229],
+    [223, 142, 29],
+    [136, 57, 239],
+    [220, 138, 120],
+    [234, 118, 203],
+    [210, 15, 57],
+    [230, 69, 83],
+    [254, 100, 11],
+    [64, 160, 43],
+    [221, 120, 120],
+    [32, 159, 181],
+    [23, 146, 153],
+    [30, 102, 245],
+    [114, 135, 253],
+    [0, 100, 0],
+    [76, 79, 105],
+];
+
 #[derive(Debug, Serialize, Deserialize)]
 struct SerProps {
     id: usize,
@@ -52,6 +73,7 @@ struct SerProps {
 
 fn main() {
     let file = File::open("domaingraph.json.gz").unwrap();
+    // let file = File::open("channelgraph.json.gz").unwrap();
     let reader = BufReader::new(GzDecoder::new(file));
     let graph: UnGraph<String, usize> =
         serde_json::from_reader(reader).unwrap();
@@ -62,14 +84,38 @@ fn main() {
         graph.edge_count()
     );
 
-    let file = File::open("layout.json").unwrap();
+    let file = File::open("layout_egui.json").unwrap();
+    // let file = File::open("chanlayout_egui.json").unwrap();
     let reader = BufReader::new(file);
     let layout: Vec<[f64; 2]> = serde_json::from_reader(reader).unwrap();
 
     let file = File::open("leiden.json").unwrap();
+    // let file = File::open("chanleiden.json").unwrap();
     let reader = BufReader::new(file);
     let leiden: Vec<Vec<usize>> = serde_json::from_reader(reader).unwrap();
     assert!(leiden.len() <= LEIDEN_COLOURS.len());
+
+    // let file = File::open("../dataset/df_channels_en.tsv.gz").unwrap();
+    // let reader = BufReader::new(GzDecoder::new(file));
+    // let cat_map: HashMap<String, usize> = reader
+    //     .lines()
+    //     .skip(1)
+    //     .map(|read_line| {
+    //         let line = read_line.unwrap();
+    //         let mut splits = line.split('\t');
+    //
+    //         let cat_str = splits.next().unwrap();
+    //         let cat = CATEGORIES
+    //             .iter()
+    //             .skip(1)
+    //             .position(|e| *e == cat_str)
+    //             .unwrap_or(CATEGORIES.len() - 1);
+    //
+    //         let chan = splits.nth(1).unwrap();
+    //
+    //         (chan.to_string(), cat)
+    //     })
+    //     .collect();
 
     let cats = HashMap::from([
         ("content/music", UrlCat::Content),
@@ -131,6 +177,16 @@ fn main() {
                 leiden.iter().position(|l| l.contains(&e.index())).unwrap();
             let leic = LEIDEN_COLOURS[lind];
 
+            // let chan = graph.node_weight(e).unwrap();
+            // let cat = match cat_map.get(chan) {
+            //     Some(e) => *e,
+            //     None => {
+            //         println!("{chan}");
+            //         16
+            //     }
+            // };
+            // let catc = CHAN_COLOURS[cat];
+
             let dom = graph.node_weight(e).unwrap();
             let cat = match cat_map.get(dom) {
                 Some(e) => e,
@@ -164,10 +220,12 @@ fn main() {
         .collect();
 
     let file = File::create("sitegraphprops.json.gz").unwrap();
+    // let file = File::create("changraphprops.json.gz").unwrap();
     let writer = BufWriter::new(GzEncoder::new(file, Compression::default()));
     let _ = serde_json::to_writer(writer, &props);
 
     let file = File::create("sitegraph.json.gz").unwrap();
+    // let file = File::create("changraph.json.gz").unwrap();
     let writer = BufWriter::new(GzEncoder::new(file, Compression::default()));
     let _ = serde_json::to_writer(writer, &graph);
 }
