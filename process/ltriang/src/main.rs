@@ -11,7 +11,8 @@ use petgraph::graph::UnGraph;
 use serde_json;
 
 fn main() {
-    let file = File::open("sponsoreddomainchannels.json.gz").unwrap();
+    // let file = File::open("sponsoreddomainchannels.json.gz").unwrap();
+    let file = File::open("sponsoredchanneldomains.json.gz").unwrap();
     let reader = BufReader::new(GzDecoder::new(file));
     let mut domchannels: HashMap<String, HashSet<String>> =
         serde_json::from_reader(reader).unwrap();
@@ -33,7 +34,8 @@ fn main() {
     {
         for (d2, cs2) in domchannels.iter().skip(i + 1) {
             let weight = cs1.intersection(cs2).count();
-            if weight < 5 {
+            // if weight < 5 {
+            if weight < 10 {
                 continue;
             }
 
@@ -55,7 +57,7 @@ fn main() {
     graph.retain_nodes(|_, e| max_con.contains(&e));
     println!("{}", graph.node_count());
 
-    let file = File::create("domaingraph.json.gz").unwrap();
+    let file = File::create("channelgraph.json.gz").unwrap();
     let writer = BufWriter::new(GzEncoder::new(file, Compression::default()));
     serde_json::to_writer(writer, &graph).unwrap();
 }
