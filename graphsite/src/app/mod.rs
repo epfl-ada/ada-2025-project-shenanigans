@@ -77,8 +77,8 @@ impl Adapp {
 
         let mut state = S::default();
         state.base.is_running = true;
-        state.base.dt = 0.0001;
-        state.base.damping = 0.5;
+        state.base.dt = 0.003;
+        state.base.damping = 0.03;
         state.base.k_scale = 1.2;
 
         let mut init = Self {
@@ -110,7 +110,8 @@ impl Adapp {
                 Event::NodeDoubleClick(n) => {
                     if let Some(w) = window() {
                         let url = format!(
-                            "https://{}",
+                            // "https://{}",
+                            "https://www.youtube.com/channel/{}",
                             self.g
                                 .node((n.id as u32).into())
                                 .unwrap()
@@ -308,6 +309,18 @@ impl Adapp {
 impl App for Adapp {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
         if self.show_sidebar {
+            console::log_1(
+                &format!(
+                    "{:?}",
+                    self.g
+                        .g()
+                        .node_weights()
+                        .map(|e| e.location())
+                        .map(|e| [e.x, e.y])
+                        .collect::<Vec<[f32; 2]>>()
+                )
+                .into(),
+            );
             egui::SidePanel::right("right")
                 .default_width(200.0)
                 .min_width(200.0)
@@ -348,31 +361,29 @@ impl App for Adapp {
 }
 
 fn generate_graph() -> (G, Vec<SerProps>) {
-    let gzipped = include_bytes!("../../sitegraph.json.gz");
+    let gzipped = include_bytes!("../../changraph.json.gz");
     let mut deco = GzDecoder::new(Vec::new());
     deco.write_all(gzipped).unwrap();
     let base_graph: StableUnGraph<String, usize> =
         serde_json::from_slice(&deco.finish().unwrap()).unwrap();
 
-    let gzipped = include_bytes!("../../sitegraphprops.json.gz");
+    let gzipped = include_bytes!("../../changraphprops.json.gz");
     let mut deco = GzDecoder::new(Vec::new());
     deco.write_all(gzipped).unwrap();
     let graph_props: Vec<SerProps> =
         serde_json::from_slice(&deco.finish().unwrap()).unwrap();
 
     console::log_1(
-        &format!("loading {} edges", base_graph.edge_count())
-            .to_string()
-            .into(),
+        &format!(
+            "loaded {} nodes and {} edges",
+            base_graph.node_count(),
+            base_graph.edge_count()
+        )
+        .into(),
     );
+
     let mut g =
         Graph::<_, _, _, _, AdaNodeShape, AdaEdgeShape>::from(&base_graph);
-
-    console::log_1(
-        &format!("loading {} nodes", base_graph.node_count())
-            .to_string()
-            .into(),
-    );
 
     g.g_mut()
         .node_weights_mut()
@@ -382,11 +393,7 @@ fn generate_graph() -> (G, Vec<SerProps>) {
 
             n.set_label(n.payload().clone());
             n.set_location(Pos2 { x: p.x, y: p.y });
-
-            console::log_1(&format!("{:?}", n.location()).into());
         });
-
-    console::log_1(&"finished loading!".into());
 
     (g, graph_props)
 }

@@ -11,3 +11,5 @@ petgraph.workspace = true
 scarlet = "1.2.0"
 serde.workspace = true
 serde_json.workspace = true
+utils.workspace = true
+plot_utils.workspace = true
