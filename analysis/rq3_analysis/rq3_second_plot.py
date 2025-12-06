@@ -147,17 +147,17 @@ def create_second_plot_rq3(
 
     const metricsConfig = {{
       ratio: {{
-        label: "like/dislike ratio (median per channel)",
-        axisLabel: "like/dislike ratio",
+        label: "median like/dislike ratio",
+        axisLabel: "like/dislike ratio [%]",
         unit: ""
       }},
       duration: {{
-        label: "duration (median per channel)",
+        label: "median duration",
         axisLabel: "duration [s]",
         unit: ""
       }},
       views: {{
-        label: "view count (median per channel)",
+        label: "median view count",
         axisLabel: "view count",
         unit: ""
       }}
@@ -249,16 +249,6 @@ def create_second_plot_rq3(
               usePointStyle: true,
               pointStyle: "circle"
             }}
-          }},
-          title: {{
-            display: true,
-            text: metricsConfig[currentMetric].label,
-            color: "#e5e7eb",
-            font: {{
-              size: 14,
-              weight: "500"
-            }},
-            padding: {{ bottom: 8 }}
           }},
           tooltip: {{
             backgroundColor: "rgba(15, 23, 42, 0.96)",
@@ -403,7 +393,6 @@ def create_second_plot_rq3(
         dumbbellChart.data.datasets[0].data = updated.dataNon;
         dumbbellChart.data.datasets[1].data = updated.dataSpon;
 
-        dumbbellChart.options.plugins.title.text = metricsConfig[currentMetric].label;
         dumbbellChart.options.scales.x.title.text = metricsConfig[currentMetric].axisLabel;
 
         hoverIndex = null;

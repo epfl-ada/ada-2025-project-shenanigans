@@ -75,7 +75,8 @@ def add_columns(
     dislikes = df_step1["dislike_count"]
     likes = df_step1["like_count"]
     
-    df_step1["like_dislike_ratio"] = likes/dislikes
+    # get like/dislike ration as percentage
+    df_step1["like_dislike_ratio"] = (likes/(likes+dislikes))*100
     
     df_step1["sponsored"] = df_step1["display_id"].isin(sponsored_videos_ids)
 

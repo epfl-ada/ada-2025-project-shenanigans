@@ -116,7 +116,7 @@
   </div>
 
   <script>
-    const dumbbellData = {"categories": ["Autos & Vehicles", "Comedy", "Education", "Entertainment", "Film & Animation", "Gaming", "Howto & Style", "Music", "News & Politics", "Nonprofits & Activism", "People & Blogs", "Pets & Animals", "Science & Technology", "Sports", "Travel & Events"], "metrics": {"ratio": {"non_sponsored": [26.104166666666668, 36.88136306268405, 38.72649572649573, 33.63489736070381, 31.979460847240052, 40.12277070063695, 32.01013574660634, 40.591034223862856, 20.948069542701255, 35.134502923976605, 40.0, 33.55681818181818, 27.15277777777778, 30.975, 39.5], "sponsored": [29.07207207207207, 51.582041728763045, 39.2, 36.38724271507863, 35.374735605170386, 45.33838383838384, 35.55652173913043, 42.88656569541218, 18.86334490411012, 29.655854436991994, 41.87296634341227, 33.60667129951355, 29.508575264644602, 34.22679924242425, 33.200873362445414]}, "duration": {"non_sponsored": [303.5, 213.0, 385.0, 319.75, 228.0, 554.25, 328.25, 217.0, 241.0, 192.25, 306.5, 149.0, 348.5, 210.0, 319.0], "sponsored": [597.0, 375.0, 594.0, 497.0, 353.0, 716.5, 494.0, 247.0, 438.0, 421.5, 537.5, 267.0, 554.75, 386.5, 605.25]}, "views": {"non_sponsored": [29294.0, 49098.0, 25170.0, 39258.5, 33362.5, 29904.75, 24647.5, 54709.0, 10842.0, 12473.5, 25702.5, 23630.0, 19908.0, 17879.75, 15168.5], "sponsored": [232830.0, 649481.5, 122755.0, 459750.75, 450867.5, 202712.0, 149617.25, 1293843.0, 175543.0, 92190.0, 261942.0, 790203.0, 90462.25, 250516.5, 156150.75]}}};
+    const dumbbellData = {"categories": ["Autos & Vehicles", "Comedy", "Education", "Entertainment", "Film & Animation", "Gaming", "Howto & Style", "Music", "News & Politics", "Nonprofits & Activism", "People & Blogs", "Pets & Animals", "Science & Technology", "Sports", "Travel & Events"], "metrics": {"ratio": {"non_sponsored": [96.2085308056872, 97.2252780833639, 97.37293042105952, 97.02351175587792, 96.80401831942491, 97.54140126368904, 96.84035279495811, 97.5517768077544, 95.04480481406469, 97.05882352941175, 97.47679213130789, 96.96780522607688, 96.37574323021428, 96.72996105186344, 97.36842105263158], "sponsored": [96.63334248346337, 98.04391250728008, 97.4757331737031, 97.27420964086888, 97.2, 97.83118940155198, 97.15846994535518, 97.70285210081602, 94.88105615854684, 96.61421809904375, 97.5969216696025, 96.96684250188396, 96.69421487603306, 97.15693031066118, 96.95554582563827]}, "duration": {"non_sponsored": [303.5, 213.0, 385.0, 319.75, 228.0, 554.25, 328.25, 217.0, 241.0, 192.25, 306.5, 149.0, 348.5, 210.0, 319.0], "sponsored": [597.0, 375.0, 594.0, 497.0, 353.0, 716.5, 494.0, 247.0, 438.0, 421.5, 537.5, 267.0, 554.75, 386.5, 605.25]}, "views": {"non_sponsored": [29294.0, 49098.0, 25170.0, 39258.5, 33362.5, 29904.75, 24647.5, 54709.0, 10842.0, 12473.5, 25702.5, 23630.0, 19908.0, 17879.75, 15168.5], "sponsored": [232830.0, 649481.5, 122755.0, 459750.75, 450867.5, 202712.0, 149617.25, 1293843.0, 175543.0, 92190.0, 261942.0, 790203.0, 90462.25, 250516.5, 156150.75]}}};
 
     const mainTitle = "Dumbbell plot - sponsored vs nonsponsored videos for different metrics";
 
@@ -126,17 +126,17 @@
 
     const metricsConfig = {
       ratio: {
-        label: "like/dislike ratio (median per channel)",
-        axisLabel: "like/dislike ratio",
+        label: "median like/dislike ratio",
+        axisLabel: "like/dislike ratio [%]",
         unit: ""
       },
       duration: {
-        label: "duration (median per channel)",
+        label: "median duration",
         axisLabel: "duration [s]",
         unit: ""
       },
       views: {
-        label: "view count (median per channel)",
+        label: "median view count",
         axisLabel: "view count",
         unit: ""
       }
@@ -228,16 +228,6 @@
               usePointStyle: true,
               pointStyle: "circle"
             }
-          },
-          title: {
-            display: true,
-            text: metricsConfig[currentMetric].label,
-            color: "#e5e7eb",
-            font: {
-              size: 14,
-              weight: "500"
-            },
-            padding: { bottom: 8 }
           },
           tooltip: {
             backgroundColor: "rgba(15, 23, 42, 0.96)",
@@ -382,7 +372,6 @@
         dumbbellChart.data.datasets[0].data = updated.dataNon;
         dumbbellChart.data.datasets[1].data = updated.dataSpon;
 
-        dumbbellChart.options.plugins.title.text = metricsConfig[currentMetric].label;
         dumbbellChart.options.scales.x.title.text = metricsConfig[currentMetric].axisLabel;
 
         hoverIndex = null;

@@ -12,7 +12,6 @@ df = pd.read_csv(
     compression="gzip"
 )
 
-
 # gather/transform data for plotting
 
 df_keep = df[df["delta_weeks"].between(-26, 26, inclusive="both")].copy()
@@ -34,7 +33,6 @@ def generate_plot_data(df: pd.DataFrame, metric_col: str) -> Dict[str, List[floa
 
     log_col = f"log_{metric_col}"
     df_temp[log_col] = np.log1p(df_temp[metric_col].clip(lower=0))
-    
 
     # aggregate across channels considering the relative week
     df_plot = (
@@ -61,17 +59,21 @@ def generate_plot_data(df: pd.DataFrame, metric_col: str) -> Dict[str, List[floa
 
 
 def create_combined_html(
-    data_views: Dict[str, List[float]], 
-    data_subs: Dict[str, List[float]], 
+    data_views: Dict[str, List[float]],
+    data_subs: Dict[str, List[float]],
     filename: Path,
-    ) -> None:
+) -> None:
     """
     Create HTML file with data for "delta_views" and "delta_subs".
     """
 
-    # titles and labels of the two metrics
-    title_views = "Weekly mean log(delta_views + 1) around first sponsor appearance, averaged across multiple channels for each week"
-    title_subs = "Weekly mean log(delta_subs + 1) around first sponsor appearance, averaged across multiple channels for each week"
+    # main title
+    main_title = (
+        "Weekly mean log(delta_metric + 1) around first sponsor appearance, "
+        "averaged across multiple channels for each week"
+    )
+
+    # y-axis labels for the two metrics
     y_label_views = "Mean log(delta_views + 1)"
     y_label_subs = "Mean log(delta_subs + 1)"
 
@@ -84,11 +86,10 @@ def create_combined_html(
     y_label_pos_views = 11.3
     y_label_pos_subs = 6.1
 
-    # serialize to use in HTML 
+    # serialize to use in HTML
     views_json = json.dumps(data_views)
     subs_json = json.dumps(data_subs)
-    title_views_json = json.dumps(title_views)
-    title_subs_json = json.dumps(title_subs)
+    main_title_json = json.dumps(main_title)
     y_label_views_json = json.dumps(y_label_views)
     y_label_subs_json = json.dumps(y_label_subs)
 
@@ -129,10 +130,20 @@ def create_combined_html(
       gap: 12px;
     }}
 
+    h1 {{
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+    }}
+
     .controls {{
       display: flex;
       gap: 10px;
       margin-bottom: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
     }}
 
     .toggle-button {{
@@ -178,6 +189,8 @@ def create_combined_html(
   </style>
 </head>
 <body>
+  <h1 id="mainTitle"></h1>
+
   <div class="controls">
     <button id="btnViews" class="toggle-button active">views</button>
     <button id="btnSubs" class="toggle-button">subscribers</button>
@@ -188,16 +201,13 @@ def create_combined_html(
   </div>
 
   <script>
-    // data from Python
     const viewsData = {views_json};
     const subsData = {subs_json};
 
-    const titleViews = {title_views_json};
-    const titleSubs = {title_subs_json};
+    const mainTitle = {main_title_json};
     const yLabelViews = {y_label_views_json};
     const yLabelSubs = {y_label_subs_json};
 
-    // y-axis limits and label placement for vertical line at weeks=0
     const yMinViews = {y_min_views};
     const yMaxViews = {y_max_views};
     const yMinSubs  = {y_min_subs};
@@ -206,7 +216,8 @@ def create_combined_html(
     const yLabelPosViews = {y_label_pos_views};
     const yLabelPosSubs  = {y_label_pos_subs};
 
-    // helper to construct points from data
+    document.getElementById('mainTitle').textContent = mainTitle;
+
     function buildPoints(metricData) {{
       const deltaWeeks = metricData.delta_weeks;
       const meanLogVal = metricData.mean_log_val;
@@ -226,7 +237,6 @@ def create_combined_html(
       }};
     }}
 
-    // animate vertical bar smoothly to corresponding x
     const snapHoverPlugin = {{
       id: 'snapHoverPlugin',
       afterEvent(chart, args) {{
@@ -324,8 +334,7 @@ def create_combined_html(
         }}
       }}
     }};
-    
-    // draw the vertical bar
+
     const hoverLinePlugin = {{
       id: 'hoverLinePlugin',
       afterDatasetsDraw(chart) {{
@@ -348,7 +357,6 @@ def create_combined_html(
 
     const ctx = document.getElementById('rq3Chart').getContext('2d');
 
-    // we land on delta_views plot by default
     let currentMetric = 'views';
     let initial = buildPoints(viewsData);
 
@@ -442,18 +450,6 @@ def create_combined_html(
               return tooltipItem.datasetIndex === 2;
             }}
           }},
-          title: {{
-            display: true,
-            text: titleViews,
-            color: '#e5e7eb',
-            font: {{
-              size: 14
-            }},
-            padding: {{
-              top: 4,
-              bottom: 16
-            }}
-          }},
           annotation: {{
             annotations: {{
               vline: {{
@@ -536,12 +532,10 @@ def create_combined_html(
       plugins: [snapHoverPlugin, hoverLinePlugin]
     }});
 
-    // function to update plot when changing metric
     function updateChart(metricKey) {{
       const isViews = metricKey === 'views';
       const metricData = isViews ? viewsData : subsData;
       const labelY    = isViews ? yLabelViews : yLabelSubs;
-      const title     = isViews ? titleViews : titleSubs;
 
       const pts = buildPoints(metricData);
 
@@ -554,7 +548,6 @@ def create_combined_html(
       const yMax = isViews ? yMaxViews : yMaxSubs;
       const yLabelPos = isViews ? yLabelPosViews : yLabelPosSubs;
 
-      rq3Chart.options.plugins.title.text = title;
       rq3Chart.options.scales.y.title.text = labelY;
       rq3Chart.options.scales.y.min = yMin;
       rq3Chart.options.scales.y.max = yMax;
@@ -565,7 +558,6 @@ def create_combined_html(
 
       rq3Chart.update();
 
-      // reset snapped line + animation when switching metric
       rq3Chart.$snapX = null;
       rq3Chart.$snapXTarget = null;
       if (rq3Chart.$lineRaf) {{
@@ -576,7 +568,6 @@ def create_combined_html(
       rq3Chart.tooltip.setActiveElements([], {{ x: 0, y: 0 }});
     }}
 
-    // buttons to toggle between views and subs
     const btnViews = document.getElementById('btnViews');
     const btnSubs  = document.getElementById('btnSubs');
 
