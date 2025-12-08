@@ -16,6 +16,7 @@ weights = [e[-1] for e in j["edges"] if e is not None]
 
 graph = ig.Graph(edges=edges, edge_attrs={"weight": weights})
 
+# l_file = Path("layout_fr.pkl")
 l_file = Path("chanlayout_fr.pkl")
 if not l_file.exists():
     layout = graph.layout("graphopt", niter=1_000)
@@ -25,9 +26,11 @@ else:
 
 # ig.plot(graph, "tmp.png", layout=layout)
 
+# out = Path("layout.json")
 out = Path("chanlayout.json")
 json.dump(layout.coords, out.open("w"))
 
+# p_file = Path("leiden.pkl")
 p_file = Path("chanleiden.pkl")
 if not p_file.exists():
     parts = list(la.find_partition(graph, la.ModularityVertexPartition))
@@ -35,5 +38,6 @@ if not p_file.exists():
 else:
     parts = pickle.load(p_file.open("rb"))
 
+# out = Path("leiden.json")
 out = Path("chanleiden.json")
 json.dump(parts, out.open("w"))

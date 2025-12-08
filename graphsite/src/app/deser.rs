@@ -7,6 +7,9 @@ pub struct SerProps {
     pub c: [u8; 3],
     pub l: [u8; 3],
     pub a: [u8; 3],
+    pub b: [u8; 3],
+    pub v: [u8; 3],
+    pub t: [u8; 3],
     pub x: f32,
     pub y: f32,
 }
