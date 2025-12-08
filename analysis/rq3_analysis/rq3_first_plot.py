@@ -78,13 +78,13 @@ def create_combined_html(
     y_label_subs = "Mean log(delta_subs + 1)"
 
     # limits along y-axis and label position of vertical line (at weeks=0)
-    y_min_views = 10.2
-    y_max_views = 11.4
-    y_min_subs = 5.0
-    y_max_subs = 6.2
+    y_min_views = 11.2
+    y_max_views = 12.4
+    y_min_subs = 6.2
+    y_max_subs = 7.4
 
-    y_label_pos_views = 11.3
-    y_label_pos_subs = 6.1
+    y_label_pos_views = 12.32
+    y_label_pos_subs = 7.32
 
     # serialize to use in HTML
     views_json = json.dumps(data_views)

@@ -30,6 +30,9 @@ def load_sponsor_videos() -> pd.DataFrame:
 
     # remove duplicates (if any)
     df_videos = df_videos.drop_duplicates(subset=["channel_id", "display_id"])
+    
+    print("number of channels: ", df_videos["channel_id"].nunique())
+    print("number of videos: ", len(df_videos["display_id"]))
 
     return df_videos
 

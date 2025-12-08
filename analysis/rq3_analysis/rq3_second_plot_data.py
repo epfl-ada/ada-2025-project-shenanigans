@@ -97,7 +97,7 @@ def generate_second_plot_data(df: pd.DataFrame) -> Dict:
 
 if __name__ == "__main__":
     df = pd.read_csv(
-        datapath / "data_rq3_second_plot_10.csv.gz",
+        datapath / "data_rq3_second_plot_gt5.csv.gz",
         compression="gzip"
     )
 

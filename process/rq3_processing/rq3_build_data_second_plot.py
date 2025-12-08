@@ -9,7 +9,7 @@ datapath = Path("../../dataset")
 SPONSORED_CHANNELS_FILE = datapath / "sponsoredchannels.json"
 METADATA_FILE   = datapath / "yt_metadata_en.jsonl.gz"
 
-output_path = datapath / "data_rq3_second_plot_10.csv.gz"
+output_path = datapath / "data_rq3_second_plot_gt5.csv.gz"
 
 
 def load_metadata() -> Tuple[pd.DataFrame, NDArray]:
@@ -23,12 +23,15 @@ def load_metadata() -> Tuple[pd.DataFrame, NDArray]:
     df_sc.reset_index(inplace=True)
     df_sc.rename(columns={"index": "channel_id"}, inplace=True)
     
-    # keep only channels with at least 10 videos in SponsorBlock
-    df_gt10 = df_sc[df_sc["video_ids"].apply(len) >= 10]
+    # keep only channels with at least 5 videos in SponsorBlock
+    df_gt10 = df_sc[df_sc["video_ids"].apply(len) >= 5]
     df_videos = df_gt10.explode("video_ids").rename(columns={"video_ids": "display_id"})
     
     # remove duplicates (if any)
     df_videos = df_videos.drop_duplicates(subset=["channel_id", "display_id"])
+    
+    print("number of channels: ", df_videos["channel_id"].nunique())
+    print("number of videos: ", len(df_videos["display_id"]))
 
     sponsored_channel_ids = df_videos["channel_id"].unique()
     sponsored_videos_ids = df_videos["display_id"].unique()
