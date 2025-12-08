@@ -402,10 +402,10 @@
             },
         },
         grid: {
-            left: "10%",
-            right: "10%",
-            top: 60,
-            bottom: 70,
+            left: "0%",
+            right: "0%",
+            top: 80,
+            bottom: 100,
         },
     });
 });

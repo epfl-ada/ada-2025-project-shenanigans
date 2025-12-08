@@ -49,7 +49,8 @@ fn main() {
     let mut writer =
         BufWriter::new(GzEncoder::new(file, Compression::default()));
 
-    let mut domain_freqs: Vec<(String, u64)> = domain_freqs.drain().collect();
+    let mut domain_freqs: Vec<(String, u64)> =
+        domain_freqs.drain().filter(|(_, e)| *e >= 3).collect();
     domain_freqs.sort_by_key(|(_, e)| *e);
     let buf = domain_freqs
         .drain(..)

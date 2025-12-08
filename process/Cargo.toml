@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "tourls", "todomains", "unshorten", "filterspon", "mergeunshortened", "tmp", "findsponsoredchannels", "utils", "ltriang", "tochanneldomains", "tograph",
+  "tourls", "todomains", "unshorten", "filterspon", "mergeunshortened", "tmp", "findsponsoredchannels", "utils", "ltriang", "tochanneldomains", "tograph", "tocats",
 ]
 resolver = "3"
 

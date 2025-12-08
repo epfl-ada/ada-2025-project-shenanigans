@@ -28,7 +28,7 @@ type S = FruchtermanReingoldWithCenterGravityState;
 type L = LayoutForceDirected<FruchtermanReingoldWithCenterGravity>;
 type GV<'a> = GraphView<
     'a,
-    String,
+    (String, String),
     usize,
     Undirected,
     u32,
@@ -37,30 +37,39 @@ type GV<'a> = GraphView<
     S,
     L,
 >;
-type G =
-    Graph<String, usize, Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape>;
+type G = Graph<
+    (String, String),
+    usize,
+    Undirected,
+    DefaultIx,
+    AdaNodeShape,
+    AdaEdgeShape,
+>;
 
 #[derive(PartialEq)]
 enum Palette {
     Connectivity,
     Leiden,
     Category,
+    Subscribers,
+    Videos,
+    Activity,
 }
 
 #[derive(PartialEq)]
 enum Radius {
-    Constant,
-    Connectivity,
+    Constant(f32),
+    Connectivity(f32),
 }
 
 #[derive(PartialEq)]
 enum Width {
-    Constant,
-    Connectivity,
+    Constant(f32),
+    Connectivity(f32),
 }
 
 pub struct Adapp {
-    g: Graph<String, usize, Undirected, DefaultIx, AdaNodeShape, AdaEdgeShape>,
+    g: G,
     events_buf: Rc<RefCell<Vec<Event>>>,
     event_filters: EventFilters,
     graph_props: Vec<SerProps>,
@@ -87,8 +96,8 @@ impl Adapp {
             event_filters: EventFilters::default(),
             graph_props: graph_props,
             selected_palette: Palette::Connectivity,
-            selected_radius: Radius::Constant,
-            selected_width: Width::Constant,
+            selected_radius: Radius::Constant(2.0),
+            selected_width: Width::Constant(0.5),
             show_sidebar: false,
             pending_layout_state: Some(state),
         };
@@ -116,7 +125,8 @@ impl Adapp {
                                 .node((n.id as u32).into())
                                 .unwrap()
                                 .props()
-                                .label
+                                .payload
+                                .0
                         );
                         w.open_with_url(&url).unwrap();
                     }
@@ -143,6 +153,9 @@ impl Adapp {
                     Palette::Connectivity => p.c,
                     Palette::Leiden => p.l,
                     Palette::Category => p.a,
+                    Palette::Subscribers => p.b,
+                    Palette::Videos => p.v,
+                    Palette::Activity => p.t,
                 };
 
                 n.set_color(Color32::from_rgb(c[0], c[1], c[2]));
@@ -158,8 +171,8 @@ impl Adapp {
                 assert_eq!(n.id().index(), p.id);
 
                 let r = match self.selected_radius {
-                    Radius::Constant => 2.0,
-                    Radius::Connectivity => 4.0 * p.s,
+                    Radius::Constant(e) => e,
+                    Radius::Connectivity(e) => e * p.s,
                 };
 
                 n.display_mut().set_radius(r);
@@ -168,12 +181,12 @@ impl Adapp {
 
     fn size_edges(&mut self) {
         match self.selected_width {
-            Width::Constant => {
+            Width::Constant(a) => {
                 self.g.g_mut().edge_weights_mut().for_each(|e| {
-                    e.display_mut().set_width(0.5);
+                    e.display_mut().set_width(a);
                 });
             }
-            Width::Connectivity => {
+            Width::Connectivity(a) => {
                 let max_con = *self
                     .g
                     .g()
@@ -183,7 +196,7 @@ impl Adapp {
                     .payload() as f32;
                 self.g.g_mut().edge_weights_mut().for_each(|e| {
                     let c = *e.payload() as f32;
-                    let w = 2.0 * f32::powf(c / max_con, 0.5);
+                    let w = a * f32::powf(c / max_con, 0.5);
                     e.display_mut().set_width(w);
                 });
             }
@@ -240,10 +253,31 @@ impl Adapp {
                     let r3 = ui.selectable_value(
                         &mut self.selected_palette,
                         Palette::Category,
-                        "URL Category",
+                        "Category",
+                    );
+                    let r4 = ui.selectable_value(
+                        &mut self.selected_palette,
+                        Palette::Subscribers,
+                        "Subscribers",
+                    );
+                    let r5 = ui.selectable_value(
+                        &mut self.selected_palette,
+                        Palette::Videos,
+                        "Videos",
+                    );
+                    let r6 = ui.selectable_value(
+                        &mut self.selected_palette,
+                        Palette::Activity,
+                        "Activity",
                     );
 
-                    if r1.changed() || r2.changed() || r3.changed() {
+                    if r1.changed()
+                        || r2.changed()
+                        || r3.changed()
+                        || r4.changed()
+                        || r5.changed()
+                        || r6.changed()
+                    {
                         self.colour_graph();
                     }
                 },
@@ -254,16 +288,26 @@ impl Adapp {
                 |ui| {
                     let r1 = ui.selectable_value(
                         &mut self.selected_radius,
-                        Radius::Constant,
+                        Radius::Constant(2.0),
                         "Constant",
                     );
                     let r2 = ui.selectable_value(
                         &mut self.selected_radius,
-                        Radius::Connectivity,
+                        Radius::Connectivity(4.0),
                         "Connectivity",
                     );
+                    let rs = match self.selected_radius {
+                        Radius::Constant(ref mut e) => ui.add(
+                            egui::Slider::new(e, 0.5..=4.0)
+                                .text("constant radius"),
+                        ),
+                        Radius::Connectivity(ref mut e) => ui.add(
+                            egui::Slider::new(e, 1.0..=8.0)
+                                .text("connectivity radius"),
+                        ),
+                    };
 
-                    if r1.changed() || r2.changed() {
+                    if r1.changed() || r2.changed() || rs.changed() {
                         self.size_nodes();
                     }
                 },
@@ -274,16 +318,26 @@ impl Adapp {
                 |ui| {
                     let r1 = ui.selectable_value(
                         &mut self.selected_width,
-                        Width::Constant,
+                        Width::Constant(0.5),
                         "Constant",
                     );
                     let r2 = ui.selectable_value(
                         &mut self.selected_width,
-                        Width::Connectivity,
+                        Width::Connectivity(2.0),
                         "Connectivity",
                     );
+                    let rs = match self.selected_width {
+                        Width::Constant(ref mut e) => ui.add(
+                            egui::Slider::new(e, 0.1..=1.0)
+                                .text("constant width"),
+                        ),
+                        Width::Connectivity(ref mut e) => ui.add(
+                            egui::Slider::new(e, 1.0..=8.0)
+                                .text("connectivity width"),
+                        ),
+                    };
 
-                    if r1.changed() || r2.changed() {
+                    if r1.changed() || r2.changed() || rs.changed() {
                         self.size_edges();
                     }
                 },
@@ -309,27 +363,27 @@ impl Adapp {
 impl App for Adapp {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
         if self.show_sidebar {
-            console::log_1(
-                &format!(
-                    "{:?}",
-                    self.g
-                        .g()
-                        .node_weights()
-                        .map(|e| e.location())
-                        .map(|e| [e.x, e.y])
-                        .collect::<Vec<[f32; 2]>>()
-                )
-                .into(),
-            );
+            // console::log_1(
+            //     &format!(
+            //         "{:?}",
+            //         self.g
+            //             .g()
+            //             .node_weights()
+            //             .map(|e| e.location())
+            //             .map(|e| [e.x, e.y])
+            //             .collect::<Vec<[f32; 2]>>()
+            //     )
+            //     .into(),
+            // );
             egui::SidePanel::right("right")
-                .default_width(200.0)
-                .min_width(200.0)
+                .default_width(300.0)
+                .min_width(300.0)
                 .show(ctx, |ui| self.ui_sidebar(ui));
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
             let mut vis = egui::Visuals::dark();
-            vis.panel_fill = Color32::BLACK;
+            vis.panel_fill = Color32::from_hex("#0f0f23").unwrap();
             ctx.set_visuals(vis);
             ctx.style_mut(|style| {
                 style.visuals.widgets.inactive.fg_stroke.color = Color32::WHITE;
@@ -362,12 +416,14 @@ impl App for Adapp {
 
 fn generate_graph() -> (G, Vec<SerProps>) {
     let gzipped = include_bytes!("../../changraph.json.gz");
+    // let gzipped = include_bytes!("../../sitegraph.json.gz");
     let mut deco = GzDecoder::new(Vec::new());
     deco.write_all(gzipped).unwrap();
-    let base_graph: StableUnGraph<String, usize> =
+    let base_graph: StableUnGraph<(String, String), usize> =
         serde_json::from_slice(&deco.finish().unwrap()).unwrap();
 
     let gzipped = include_bytes!("../../changraphprops.json.gz");
+    // let gzipped = include_bytes!("../../sitegraphprops.json.gz");
     let mut deco = GzDecoder::new(Vec::new());
     deco.write_all(gzipped).unwrap();
     let graph_props: Vec<SerProps> =
@@ -391,7 +447,7 @@ fn generate_graph() -> (G, Vec<SerProps>) {
         .for_each(|(n, p)| {
             assert_eq!(n.id().index(), p.id);
 
-            n.set_label(n.payload().clone());
+            n.set_label(n.payload().1.clone());
             n.set_location(Pos2 { x: p.x, y: p.y });
         });
 
