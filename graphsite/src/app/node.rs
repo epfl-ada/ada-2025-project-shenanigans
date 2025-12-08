@@ -1,6 +1,6 @@
 use egui::{
-    Color32, FontFamily, FontId, Pos2, Shape, Vec2,
-    epaint::{CircleShape, Stroke, TextShape},
+    Color32, FontFamily, FontId, Pos2, Shape, StrokeKind, Vec2,
+    epaint::{CircleShape, RectShape, Stroke, TextShape},
 };
 use egui_graphs::{DefaultNodeShape, DisplayNode, DrawContext, NodeProps};
 use petgraph::{EdgeType, stable_graph::IndexType};
@@ -21,10 +21,19 @@ impl AdaNodeShape {
         center: Pos2,
         radius: f32,
         color: Color32,
+        bagckground: Color32,
     ) -> Shape {
         let label_pos =
             Pos2::new(center.x - galley.size().x / 2., center.y - radius * 2.);
-        TextShape::new(label_pos, galley, color).into()
+        let label = TextShape::new(label_pos, galley, color);
+        let rect = RectShape::new(
+            label.visual_bounding_rect().expand(25.0),
+            50.0,
+            bagckground,
+            Stroke::NONE,
+            StrokeKind::Outside,
+        );
+        Shape::Vec(vec![rect.into(), label.into()])
     }
 }
 
@@ -45,16 +54,14 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<N, E, Ty, Ix>
             ctx.meta.canvas_to_screen_pos(self.default_impl.pos);
         let circle_radius =
             ctx.meta.canvas_to_screen_size(self.default_impl.radius);
+        let ppp = ctx.ctx.pixels_per_point();
 
         res.push(
             CircleShape {
                 center: circle_center,
                 radius: circle_radius,
                 fill: self.default_impl.color.unwrap_or(Color32::PLACEHOLDER),
-                stroke: Stroke {
-                    width: 0.0,
-                    color: Color32::PLACEHOLDER,
-                },
+                stroke: Stroke::NONE,
             }
             .into(),
         );
@@ -69,7 +76,7 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<N, E, Ty, Ix>
         let galley = ctx.ctx.fonts(|f| {
             f.layout_no_wrap(
                 self.default_impl.label_text.clone(),
-                FontId::new(circle_radius * 8.0, FontFamily::Monospace),
+                FontId::new(ppp * 10.0, FontFamily::Monospace),
                 Color32::PLACEHOLDER,
             )
         });
@@ -78,10 +85,11 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<N, E, Ty, Ix>
             galley,
             Pos2 {
                 x: circle_center.x,
-                y: circle_center.y - 10.0 * circle_radius,
+                y: circle_center.y - 20.0 * ppp * circle_radius.sqrt(),
             },
             circle_radius,
-            Color32::WHITE,
+            Color32::BLACK,
+            Color32::from_white_alpha(204),
         ));
 
         res
