@@ -19,7 +19,7 @@ use ndarray::prelude::*;
 use noisy_float::prelude::*;
 use serde::Deserialize;
 
-use plot_utils::{compute_histogram, xy_to_df};
+use plot_utils::{compute_histogram, describe, xy_to_df};
 
 #[derive(Deserialize)]
 struct Videos {
@@ -50,7 +50,11 @@ fn main() {
             if first_spon.upload_date > first_nspon.upload_date {
                 Some((
                     first_spon.upload_date - first_nspon.upload_date,
-                    videos.not_sponsored.len(),
+                    videos
+                        .not_sponsored
+                        .iter()
+                        .filter(|e| e.upload_date < first_spon.upload_date)
+                        .count(),
                 ))
             } else {
                 None
@@ -59,28 +63,46 @@ fn main() {
         .map(|(d, n)| (n64(d.num_days() as f64), n64(n as f64)))
         .collect();
 
+    // ndarray_npy::write_npy(
+    //     "days.npy",
+    //     &Array1::from_iter(diffs.iter().map(|e| e.raw())),
+    // )
+    // .unwrap();
+
     let stats: Vec<(String, Array1<N64>)> = ["days", "videos"]
         .iter()
         .zip([diffs, nbef])
         .map(|(n, d)| (n.to_string(), Array1::from_vec(d)))
         .collect();
 
+    stats.iter().for_each(|(n, d)| {
+        println!("{n}");
+        describe(&d);
+    });
+
     let mut chart = Chart::new()
         .title(
             Title::new()
-                .text("Time Before First Sponsored Video")
+                .text("Time Before First Sponsor")
                 .text_align(TextAlign::Center)
-                .left("50%"),
+                .left("22.5%"),
+        )
+        .title(
+            Title::new()
+                .text("Number of Videos Before First Sponsor")
+                .text_align(TextAlign::Center)
+                .left("77.5%"),
         )
         .tooltip(Tooltip::new().trigger(Trigger::Item))
         .animation_duration(1500.0)
         .animation_easing(Easing::CubicInOut)
-        .grid(Grid::new().right("57%"))
-        .grid(Grid::new().left("57%"));
+        .grid(Grid::new().right("55%"))
+        .grid(Grid::new().left("55%"));
 
     let data: Vec<(String, DataFrame, f64)> = stats
         .into_iter()
         .map(|(n, d)| {
+            println!("{}", d.len());
             let (x, mut y) = compute_histogram(d, 101, true, false, None, None);
             let sum = y.sum();
             y.iter_mut().for_each(|e| *e /= sum);
@@ -105,6 +127,7 @@ fn main() {
                     .grid_index(i as f64),
             )
             .y_axis(Axis::new().name("channel density").grid_index(i as f64))
+            .color(vec!["#eca9b5", "#eca9b5"])
             .series(Series::Bar(
                 bar::Bar::new()
                     .bar_width("100%")

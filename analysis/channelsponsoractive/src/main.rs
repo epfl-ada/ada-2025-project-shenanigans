@@ -5,7 +5,7 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-use charming::component::{Feature, MagicType, MagicTypeType, Toolbox};
+use charming::component::{Feature, Grid, MagicType, MagicTypeType, Toolbox};
 use charming::element::{AxisTick, ItemStyle, SplitLine};
 use charming::{
     Chart, HtmlRenderer,
@@ -79,7 +79,7 @@ fn main() {
             }
         });
 
-    let freqs: Vec<(String, Vec<f64>)> = counts
+    let freqs4: Vec<(String, Vec<f64>)> = counts
         .into_iter()
         .zip(CATEGORIES)
         .filter_map(|(a, n)| {
@@ -94,7 +94,39 @@ fn main() {
         })
         .collect();
 
-    let mut chart = Chart::new()
+    println!("{}", serde_json::to_string_pretty(&freqs4).unwrap());
+
+    let freqs2: Vec<(String, Vec<f64>)> = counts
+        .into_iter()
+        .zip(CATEGORIES)
+        .filter_map(|(a, n)| {
+            let sum = (a[0] + a[2]) as f64;
+            if sum == 0.0 {
+                return None;
+            }
+            Some((
+                n.to_string(),
+                vec![100.0 * a[0] as f64 / sum, 100.0 * a[2] as f64 / sum],
+            ))
+        })
+        .collect();
+
+    let freqsi: Vec<(String, Vec<f64>)> = counts
+        .into_iter()
+        .zip(CATEGORIES)
+        .filter_map(|(a, n)| {
+            let sum = (a[1] + a[3]) as f64;
+            if sum == 0.0 {
+                return None;
+            }
+            Some((
+                n.to_string(),
+                vec![100.0 * a[1] as f64 / sum, 100.0 * a[3] as f64 / sum],
+            ))
+        })
+        .collect();
+
+    let chart = Chart::new()
         .title(
             Title::new()
                 .text("Channels Active in 2025")
@@ -102,8 +134,9 @@ fn main() {
                 .left("50%"),
         )
         .tooltip(Tooltip::new().trigger(Trigger::Item))
-        .animation_duration(1500.0)
+        .animation_duration(500.0)
         .animation_easing(Easing::CubicInOut)
+        .grid(Grid::new().bottom(50))
         .y_axis(
             Axis::new()
                 .type_(AxisType::Category)
@@ -111,7 +144,7 @@ fn main() {
                 .split_line(SplitLine::new().show(false))
                 .name("categories")
                 .data(
-                    freqs.iter().map(|(e, _)| e.replace('&', "&\n")).collect(),
+                    freqs4.iter().map(|(e, _)| e.replace('&', "&\n")).collect(),
                 ),
         )
         .x_axis(
@@ -148,29 +181,66 @@ fn main() {
         "inactive",
     ];
 
+    let mut chart2 = chart.clone();
+    let mut chart4 = chart;
+
     for (i, n) in names.iter().enumerate() {
-        chart = chart.series(Series::Bar(
+        chart4 = chart4.series(Series::Bar(
             bar::Bar::new()
                 .stack("bars")
                 .item_style(ItemStyle::new().border_radius(50.0))
                 .emphasis(Emphasis::new().focus(EmphasisFocus::Series))
                 .tooltip(tooltip.clone())
                 .name(n.to_string())
-                .data(freqs.iter().map(|(_, e)| e[i]).collect()),
+                .data(freqs4.iter().map(|(_, e)| e[i]).collect()),
         ))
     }
 
-    chart = chart.legend(Legend::new().data(names.to_vec())).color(vec![
-        COLOURS[12],
-        COLOURS[10],
-        COLOURS[4],
-        COLOURS[5],
-    ]);
+    for (i, n) in [names[0], names[2]].iter().enumerate() {
+        chart2 = chart2.series(Series::Bar(
+            bar::Bar::new()
+                .stack("spon")
+                .item_style(ItemStyle::new().border_radius(50.0))
+                .emphasis(Emphasis::new().focus(EmphasisFocus::Series))
+                .tooltip(tooltip.clone())
+                .name(n.to_string())
+                .data(freqs2.iter().map(|(_, e)| e[i]).collect()),
+        ))
+    }
+
+    for (i, n) in [names[1], names[3]].iter().enumerate() {
+        chart2 = chart2.series(Series::Bar(
+            bar::Bar::new()
+                .stack("nspon")
+                .item_style(ItemStyle::new().border_radius(50.0))
+                .emphasis(Emphasis::new().focus(EmphasisFocus::Series))
+                .tooltip(tooltip.clone())
+                .name(n.to_string())
+                .data(freqsi.iter().map(|(_, e)| e[i]).collect()),
+        ))
+    }
+
+    let cols = vec![COLOURS[12], COLOURS[10], COLOURS[4], COLOURS[5]];
+    chart4 = chart4
+        .legend(Legend::new().data(names.to_vec()))
+        .color(cols);
+
+    let cols = vec![COLOURS[12], COLOURS[4], COLOURS[10], COLOURS[5]];
+    chart2 = chart2
+        .legend(Legend::new().data(names.to_vec()))
+        .color(cols);
 
     let mut renderer =
         HtmlRenderer::new("active", 900, 600).theme(Theme::Custom(
             "sheNaNigans",
             include_str!("../../theme/sheNaNigans.js"),
         ));
-    renderer.save(&chart, "active.html").unwrap();
+    renderer.save(&chart4, "active4.html").unwrap();
+
+    let mut renderer =
+        HtmlRenderer::new("active", 900, 600).theme(Theme::Custom(
+            "sheNaNigans",
+            include_str!("../../theme/sheNaNigans.js"),
+        ));
+    renderer.save(&chart2, "active2.html").unwrap();
 }

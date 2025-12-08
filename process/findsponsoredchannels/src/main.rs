@@ -51,6 +51,7 @@ fn main() {
     let file = File::open("../sponsorblock/sponsorTimes.csv").unwrap();
     let reader = BufReader::new(file);
     let sponsored = make_sponsor_set(reader).unwrap();
+    println!("found {} sponsored videos", sponsored.len());
 
     let process_line =
         |(i, read_line): (usize, Result<String, std::io::Error>)| {
@@ -62,10 +63,10 @@ fn main() {
             serde_json::from_str::<VideoEntry>(&line).ok()
         };
 
+    let mut sponvids = HashMap::<String, Videos>::new();
+
     let file = File::open("../dataset/yt_metadata_en.jsonl.gz").unwrap();
     let reader = BufReader::new(GzDecoder::new(file));
-
-    let mut sponvids = HashMap::<String, Videos>::new();
     reader
         .lines()
         .enumerate()
@@ -113,6 +114,15 @@ fn main() {
                 });
             }
         });
+
+    let tmp = sponvids
+        .values()
+        .map(|e| [e.sponsored.len(), e.not_sponsored.len()])
+        .fold([0usize; 2], |acc, e| [acc[0] + e[0], acc[1] + e[1]]);
+    println!(
+        "for {} sponsored videos and {} not sponsored",
+        tmp[0], tmp[1]
+    );
 
     sponvids.values_mut().for_each(|e| {
         e.sponsored.sort_by_key(|v| v.upload_date);

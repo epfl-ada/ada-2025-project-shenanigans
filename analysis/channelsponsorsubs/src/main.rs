@@ -17,10 +17,12 @@ use charming::{
 use chrono::{DateTime, NaiveDateTime, Utc};
 use flate2::read::GzDecoder;
 use ndarray::prelude::*;
+use ndarray_stats::Quantile1dExt;
+use ndarray_stats::interpolate::Midpoint;
 use noisy_float::prelude::*;
 use serde::Deserialize;
 
-use plot_utils::{COLOURS, PATHS, compute_histogram, xy_to_df};
+use plot_utils::{COLOURS, PATHS, compute_histogram, describe, xy_to_df};
 use utils::{CATEGORIES, line_progress};
 
 #[derive(Deserialize)]
@@ -60,6 +62,10 @@ fn main() {
     let file = File::open("../dataset/df_timeseries_en.tsv.gz").unwrap();
     let reader = BufReader::new(GzDecoder::new(file));
     let mut timeseries = HashMap::<String, Vec<ChannelTimePoint>>::new();
+    let film_cat = CATEGORIES
+        .iter()
+        .position(|&e| e == "Film & Animation")
+        .unwrap();
     reader.lines().enumerate().for_each(|(i, read_line)| {
         line_progress(i, &mut start, 1_000_000);
 
@@ -72,9 +78,15 @@ fn main() {
         }
 
         let cat_str = splits.next().unwrap();
-        let Some(category) = CATEGORIES.iter().position(|&e| e == cat_str)
-        else {
-            return;
+        let category = match CATEGORIES.iter().position(|&e| e == cat_str) {
+            Some(e) => e,
+            None => {
+                if cat_str == "Film and Animation" {
+                    film_cat
+                } else {
+                    return;
+                }
+            }
         };
 
         let date_str = splits.next().unwrap();
@@ -171,7 +183,11 @@ fn main() {
     let data: Vec<(String, Vec<(String, DataFrame, f64)>)> = stats
         .into_iter()
         .map(|(n, d)| {
-            let d: Vec<N64> = d.into_iter().filter(|e| *e > 0.0).collect();
+            let (d, cats): (Vec<N64>, Vec<usize>) = d
+                .into_iter()
+                .zip(cats.iter())
+                .filter(|(e, _)| *e > 0.0)
+                .collect();
             let d_min = *d.iter().min().unwrap();
             let d_max = *d.iter().max().unwrap();
 
@@ -188,6 +204,19 @@ fn main() {
                             ),
                         )
                     };
+
+                    println!(
+                        r#"({n}) "{}": {:.0}"#,
+                        if c == CATEGORIES.len() {
+                            "All"
+                        } else {
+                            CATEGORIES[c]
+                        },
+                        filtered
+                            .clone()
+                            .quantile_mut(n64(0.5), &Midpoint)
+                            .unwrap()
+                    );
 
                     let cn = if c == CATEGORIES.len() {
                         "All".to_string()
@@ -271,24 +300,23 @@ fn main() {
                         )),
                     ))
                     .emphasis(Emphasis::new().focus(EmphasisFocus::Series))
-                    .name(if cn.is_empty() { "Misc".to_string() } else { cn })
+                    .name(cn)
                     .data(cd),
             ));
         }
     }
 
-    let mut leg = vec![("All".to_string(), "circle".to_string())];
-    leg.extend(CATEGORIES.iter().zip(PATHS).map(|(c, p)| {
-        let name = if c.is_empty() { "Misc" } else { c };
-        (name.to_string(), "path://".to_string() + p)
-    }));
+    let leg: Vec<(String, String)> = CATEGORIES
+        .iter()
+        .zip(PATHS)
+        .map(|(c, p)| (c.to_string(), "path://".to_string() + p))
+        .chain([("All".to_string(), "circle".to_string())])
+        .collect();
     chart = chart
         .legend(
             Legend::new()
                 .top("bottom")
-                .selected(leg.iter().map(|(e, _)| {
-                    (e, ["All", "Entertainment"].contains(&e.as_str()))
-                }))
+                .selected(leg.iter().map(|(e, _)| (e, "All" == e.as_str())))
                 .data(leg),
         )
         .color(COLOURS.into_iter().rev().collect::<Vec<&str>>());

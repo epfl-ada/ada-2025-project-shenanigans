@@ -60,8 +60,30 @@ fn main() {
     )
     .unwrap();
 
-    let mut domchannels = HashMap::<String, HashSet<String>>::new();
+    let mut channeldoms = HashMap::<String, HashSet<String>>::new();
+    let file = File::open("sponsoredurls_unshortened.jsonl.gz").unwrap();
+    let reader = BufReader::new(GzDecoder::new(file));
+    reader.lines().for_each(|read_line| {
+        let line = read_line.unwrap();
 
+        let VideoUrls { display_id, urls } =
+            serde_json::from_str(&line).unwrap();
+
+        let channel_id = vidchan.get(&display_id).unwrap();
+
+        let entry = channeldoms.entry(channel_id.clone()).or_default();
+        entry.extend(
+            urls.into_iter().map(|e| {
+                domain_pattern.captures(&e).unwrap()[1].to_lowercase()
+            }),
+        );
+    });
+
+    let file = File::create("sponsoredchanneldomains.json.gz").unwrap();
+    let writer = BufWriter::new(GzEncoder::new(file, Compression::default()));
+    serde_json::to_writer(writer, &channeldoms).unwrap();
+
+    let mut domchannels = HashMap::<String, HashSet<String>>::new();
     let file = File::open("sponsoredurls_unshortened.jsonl.gz").unwrap();
     let reader = BufReader::new(GzDecoder::new(file));
     reader.lines().for_each(|read_line| {
@@ -81,5 +103,5 @@ fn main() {
 
     let file = File::create("sponsoreddomainchannels.json.gz").unwrap();
     let writer = BufWriter::new(GzEncoder::new(file, Compression::default()));
-    serde_json::to_writer(writer, &domchannels).unwrap()
+    serde_json::to_writer(writer, &domchannels).unwrap();
 }

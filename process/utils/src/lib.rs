@@ -2,8 +2,8 @@ use serde::Serialize;
 use std::collections::HashSet;
 use std::io::BufRead;
 
-pub const CATEGORIES: [&str; 16] = [
-    "",
+pub const CATEGORIES: [&str; 15] = [
+    // "",
     "Autos & Vehicles",
     "Comedy",
     "Education",
@@ -44,11 +44,17 @@ pub fn make_sponsor_set<T: BufRead>(
                 return Some(Ok(line.trim_start_matches('"').to_string()));
             }
 
-            if let Some((video_id, _)) = line.split_once(",") {
-                Some(Ok(video_id.to_string()))
-            } else {
-                None
-            }
+            let mut splits = line.split(',');
+            let Some(video_id) = splits.next() else {
+                return None;
+            };
+            if let Some(cat) = splits.nth(9)
+                && cat != "sponsor"
+            {
+                return None;
+            };
+
+            Some(Ok(video_id.to_string()))
         })
         .collect()
 }
