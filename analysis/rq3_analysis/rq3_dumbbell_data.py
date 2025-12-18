@@ -97,13 +97,13 @@ def generate_second_plot_data(df: pd.DataFrame) -> Dict:
 
 if __name__ == "__main__":
     df = pd.read_csv(
-        datapath / "data_rq3_second_plot_gt5.csv.gz",
+        datapath / "data_rq3_dumbbell_gt5.csv.gz",
         compression="gzip"
     )
 
     second_plot_data = generate_second_plot_data(df)
 
-    output_json_path = output_path / "rq3_second_plot_data.json"
+    output_json_path = output_path / "rq3_dumbbell_data.json"
     with open(output_json_path, "w", encoding="utf-8") as f:
         json.dump(second_plot_data, f, ensure_ascii=False, indent=2)
 

@@ -410,7 +410,7 @@ def create_second_plot_rq3(
 
 
 if __name__ == "__main__":
-    json_path = Path().cwd() / "rq3_second_plot_data.json"
+    json_path = Path().cwd() / "rq3_dumbbell_data.json"
     with open(json_path, "r", encoding="utf-8") as f:
         second_plot_data = json.load(f)
 

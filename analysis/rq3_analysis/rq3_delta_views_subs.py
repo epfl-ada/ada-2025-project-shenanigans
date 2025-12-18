@@ -8,7 +8,7 @@ datapath = Path("../../dataset")
 html_path = Path("../../figures/rq3")
 
 df = pd.read_csv(
-    datapath / "data_rq3_first_plot.csv.gz",
+    datapath / "data_rq3_delta_views_subs.csv.gz",
     compression="gzip"
 )
 

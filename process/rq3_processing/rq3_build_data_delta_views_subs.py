@@ -8,10 +8,9 @@ SPONSORED_CHANNELS_FILE = datapath / "sponsoredchannels.json"
 METADATA_FILE   = datapath / "yt_metadata_en.jsonl.gz"
 TIMESERIES_FILE = datapath / "df_timeseries_en.tsv.gz"                      
 
-output_path = datapath / "data_rq3_first_plot.csv.gz"
+output_path = datapath / "data_rq3_delta_views_subs.csv.gz"
 
 
-## step 1
 def load_sponsor_videos() -> pd.DataFrame:
     """
     Create df with columns "channel_id" and "display_id" (to have all videos 
@@ -37,7 +36,6 @@ def load_sponsor_videos() -> pd.DataFrame:
     return df_videos
 
 
-## step 2
 def join_with_metadata(
     df_step1: pd.DataFrame
     ) -> pd.DataFrame:
@@ -72,7 +70,6 @@ def join_with_metadata(
     return df_meta_sponsor
 
 
-## step 3
 def load_timeseries(
     filtered_channel_ids: pd.DataFrame
     ) -> pd.DataFrame:
@@ -100,7 +97,6 @@ def load_timeseries(
     return df_ts
 
 
-## step 4
 def find_first_sponsor_date(
     df_step2: pd.DataFrame, 
     df_step3: pd.DataFrame
@@ -124,13 +120,12 @@ def find_first_sponsor_date(
     return df_step3
 
 
-## combine steps 1-4
 def build_csv_first_plot_rq3(
     output_file: Path,
     verbose: bool = False
     ) -> None:
     """
-    Process using all the functions above.
+    Process using all the four functions above.
     """
 
     df_sponsor_videos = load_sponsor_videos()
