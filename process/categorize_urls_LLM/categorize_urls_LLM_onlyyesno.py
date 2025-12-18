@@ -19,10 +19,26 @@ repo_root = Path(__file__).parent.parent.parent
 
 
 
-SYSTEM_PROMPT = """
-You will be given URLS that are found inside Youtube Descriptions. Your goal is to use your knowledge and common sense to categorize them by answering "yes" if you believe the URL has to do with monetization (merch, sponsor url, direct donation page, etc), or "no" if the URL is not for monetization purposes. 
+SYSTEM_PROMPT = """You are classifying URLs found in YouTube video descriptions.
 
-Return ONLY "yes" for monetization or "no" otherwise."""
+Classify as "yes" (MONETIZATION) if the URL is likely used by the creator to earn money:
+- Amazon links (amazon.com, amazon.de, amazon.co.uk, amzn.to, etc.) - creators use affiliate programs
+- Affiliate/referral links and link shorteners that typically mask affiliate links
+- Merchandise stores (teespring, spreadshirt, merch sites)
+- Direct support/donation platforms (patreon, ko-fi, buymeacoffee, paypal.me)
+- Sponsor landing pages or promo codes
+- Creator's own product/course sales pages
+
+Classify as "no" (NOT MONETIZATION) if the URL is:
+- Social media profiles (twitter, instagram, facebook, tiktok)
+- Community links (discord, reddit)
+- Video platforms for content (youtube, twitch, youtu.be)
+- Free content/streaming platforms (soundcloud, spotify)
+- News/reference sites (wsj, wikipedia)
+- General information or attribution (creativecommons.org)
+- App store links
+
+Respond with ONLY "yes" or "no"."""
 
 def categorize_single_domain(domain: str, client: openai.OpenAI) -> str:
     try:
@@ -51,7 +67,7 @@ def categorize_domains_batch(
     client: openai.OpenAI,
     batch_size: int = 1,
     delay: float = 0.1,
-    checkpoint_file: Path = repo_root/ "process" / "categorize_urls_LLM" /'sponsoreddomains_unshortened_v3_testing_yes_no.csv'
+    checkpoint_file: Path = repo_root/ "process" / "categorize_urls_LLM" /'sponsoreddomains_unshortened_v4_full_data.csv'
 ) -> pd.DataFrame:
     results = []
     total = len(domains_df)
@@ -81,13 +97,13 @@ def main():
     api_key = os.getenv("OPENAI_API_KEY")
 
     domains = pd.read_csv(
-    repo_root/"dataset"/"sponsoreddomains_unshortened.csv.gz", 
+    repo_root/"dataset"/"full_urls.csv", 
     header=None,  
     names=['domain', 'count']  
     )
     
     #>100 appearances = 1.6k urls 
-    domains = domains[domains['count'] >= 10000].copy()
+    #domains = domains[domains['count'] >= 10000].copy()
     # Filter domains with >= 10000 appearances
     #domains_filtered = domains[domains['count'] >= 10000].copy()
     #print(f"Domains with >=10000 appearances: {len(domains_filtered):,}")
@@ -102,7 +118,7 @@ def main():
     )
     
     # Save results
-    output_file = repo_root/'sponsoreddomains_unshortened_v3_testing_yes_no.csv'
+    output_file = repo_root/'sponsoreddomains_unshortened_v4_full_data.csv'
     domains_categorized.to_csv(output_file, index=False)
     print(f"\nResults saved to {output_file}")
 
