@@ -23,6 +23,15 @@ DEFAULT_ACTIVITY_MAPPING = {
     "Not Available": "not_active",
 }
 
+'''
+`normalize_activity_band(df: pd.DataFrame) -> pd.DataFrame`
+Normalizes activity labels to ensure consistent downstream analysis.
+- If `activity_band_2025` exists, it is used as the source column; otherwise, `activity_band` is expected.
+- All values are converted to lowercase strings and stripped of whitespace.
+- Known aliases (e.g., `"inactive"`, `"Not Available"`) are mapped to standardized labels via `DEFAULT_ACTIVITY_MAPPING`.
+
+This function ensures that activity labels are comparable across categories and robust to upstream inconsistencies.
+'''
 def normalize_activity_band(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
@@ -39,13 +48,32 @@ def normalize_activity_band(df: pd.DataFrame) -> pd.DataFrame:
         .replace(DEFAULT_ACTIVITY_MAPPING)
     )
     return df
-    
+'''
+`validate_activity_inputs(df: pd.DataFrame) -> None`
+Validates that the DataFrame contains all columns required for category-level aggregation and visualization.
+
+Specifically checks for:
+- `category_cc`
+- `activity_band`
+- `url`
+- `subscribers_cc`
+
+Raises a `ValueError` if any required column is missing.'''
+
 def validate_activity_inputs(df: pd.DataFrame) -> None:
     required = ["category_cc", "activity_band", "url", "subscribers_cc"]
     missing = [c for c in required if c not in df.columns]
     if missing:
         raise ValueError(f"df missing columns: {missing}")
 
+'''`make_category_counts(df_cat: pd.DataFrame, cat_id: str, label: str) -> dict`
+Computes the number of active and inactive channels within a single category.
+
+- Uses `value_counts()` on `activity_band`.
+- Returns a compact dictionary with the category identifier, label, and counts.
+
+This output format is optimized for JSON-based visualization layers.
+'''
 def make_category_counts(df_cat: pd.DataFrame, cat_id: str, label: str) -> dict:
     counts = df_cat["activity_band"].value_counts(dropna=False)
     return {
@@ -54,6 +82,17 @@ def make_category_counts(df_cat: pd.DataFrame, cat_id: str, label: str) -> dict:
         "active": int(counts.get("active", 0)),
         "not_active": int(counts.get("not_active", 0)),
     }
+
+'''`sample_representative_links(df_cat: pd.DataFrame, *, unit: int, keep_fields: list[str]) -> dict`
+
+Selects representative channels per category and activity band.
+
+- Converts raw counts into a number of “icons” using `count / unit`.
+- For each band (`active`, `not_active`), selects the most-subscribed channels.
+- Retains only selected fields for lightweight export.
+
+This function supports interactive plots that show real channel examples without overwhelming the UI.
+'''
 
 def sample_representative_links(
     df_cat: pd.DataFrame,
@@ -91,8 +130,24 @@ def sample_representative_links(
 
     return out
 
+'''
+`no_data() -> str`
+Returns the canonical missing-data label (`"Not Available"`).
+
+Centralizing this value avoids inconsistent missing-data handling across the pipeline.
+'''
 def no_data() -> str:
     return "Not Available"
+
+'''`channel_id_from_any(x)`
+
+Extracts a canonical YouTube channel ID from heterogeneous inputs.
+
+- Accepts raw channel IDs (`UC…`) or full channel URLs.
+- Uses regular expressions to detect and extract valid IDs.
+- Returns `None` if extraction fails.
+
+This normalization step enables consistent caching and API calls.'''
 
 def channel_id_from_any(x):
     if x is None:
@@ -103,8 +158,25 @@ def channel_id_from_any(x):
     m = URL_CH_RE.search(s)
     return m.group(1) if m else None
 
+
+'''`channel_url(cid: str) -> str`
+
+Constructs a canonical YouTube channel URL from a channel ID.
+
+Used to standardize URLs in the enriched DataFrame.
+'''
 def channel_url(cid: str) -> str:
     return f"https://www.youtube.com/channel/{cid}"
+
+'''`classify_activity_from_last_upload(last_upload_iso: str | None, year: int) -> str`
+
+Assigns an activity label based on the year of the most recent upload.
+
+- If the upload year matches the target year → `active`
+- If the upload year differs → `inactive`
+- If upload information is missing or malformed → `"Not Available"`
+
+This definition captures “uploaded at least once during the year” using a transparent rule.'''
 
 def classify_activity_from_last_upload(last_upload_iso: str | None, year: int) -> str:
     if not last_upload_iso or last_upload_iso == no_data():
@@ -114,6 +186,13 @@ def classify_activity_from_last_upload(last_upload_iso: str | None, year: int) -
         return "active" if y == year else "inactive"
     except Exception:
         return no_data()
+
+'''
+`is_quota_error(err: Exception) -> bool`
+Detects whether an exception likely corresponds to a YouTube API quota or rate-limit error.
+
+- Matches common quota-related substrings in error messages.
+- Used to stop execution safely while preserving cached progress.'''
 
 def is_quota_error(err: Exception) -> bool:
     s = str(err).lower()
@@ -125,6 +204,17 @@ def is_quota_error(err: Exception) -> bool:
         "exceeded your quota",
     ])
 
+'''
+yt_get(endpoint: str, params: dict, session: requests.Session, timeout=20, retries=5)`
+
+Robust wrapper around YouTube API GET requests.
+
+- Automatically injects the API key.
+- Retries transient failures (`429`, `500`, `503`) with exponential backoff.
+- Raises informative errors for non-recoverable HTTP responses.
+
+This function ensures stability during long-running enrichment jobs.
+'''
 def yt_get(endpoint: str, params: dict, session: requests.Session, timeout=20, retries=5):
     url = f"{BASE}/{endpoint}"
     params = dict(params)
@@ -154,6 +244,20 @@ def yt_get(endpoint: str, params: dict, session: requests.Session, timeout=20, r
 # ----------------------------
 # api: channels.list (batched)
 # ----------------------------
+
+'''
+`fetch_channels_core(channel_ids: list[str], session: requests.Session) -> dict[str, dict]`
+
+Fetches channel-level metadata using the `channels.list` endpoint.
+
+- Processes channel IDs in batches of 50 (API limit).
+- Extracts channel identity, statistics, and uploads playlist ID.
+- Marks channels not returned by the API as `has_api = False`.
+
+This step provides the foundational metadata required for all subsequent enrichment.
+
+---
+'''
 def fetch_channels_core(channel_ids: list[str], session: requests.Session) -> dict[str, dict]:
     out = {}
     ids = pd.Series(channel_ids).dropna().astype(str).unique().tolist()
@@ -209,6 +313,18 @@ def fetch_channels_core(channel_ids: list[str], session: requests.Session) -> di
 # ----------------------------
 # api: playlistItems.list (1 per channel, concurrent) -> latest video id
 # ----------------------------
+
+'''
+`_fetch_latest_video_id_one(uploads_pid: str, session: requests.Session)`
+
+Retrieves the most recent video from a channel’s uploads playlist.
+
+- Queries `playlistItems.list` with `maxResults = 1`.
+- Returns the latest video ID and a best-effort title.
+
+This function is executed concurrently across channels.
+
+'''
 def _fetch_latest_video_id_one(uploads_pid: str, session: requests.Session) -> tuple[str | None, str | None]:
     data = yt_get(
         "playlistItems",
@@ -223,6 +339,20 @@ def _fetch_latest_video_id_one(uploads_pid: str, session: requests.Session) -> t
     sn = it.get("snippet") or {}
     return cd.get("videoId"), sn.get("title")
 
+
+'''
+`fetch_latest_video_ids_concurrent(core_map: dict[str, dict], session: requests.Session, max_workers=15)`
+
+Fetches latest video IDs for all channels in parallel.
+
+- Submits one task per channel with a valid uploads playlist.
+- Uses a thread pool to reduce total runtime.
+- Fails gracefully on individual errors without interrupting the pipeline.
+
+This is the most latency-sensitive step and benefits most from concurrency.
+
+---
+'''
 def fetch_latest_video_ids_concurrent(core_map: dict[str, dict], session: requests.Session, max_workers=15) -> dict[str, dict]:
     out = {cid: {"latest_video_id": None, "last_video_title_2025": None} for cid in core_map.keys()}
 
@@ -247,6 +377,16 @@ def fetch_latest_video_ids_concurrent(core_map: dict[str, dict], session: reques
 # ----------------------------
 # api: videos.list (batched) -> publishedAt + title
 # ----------------------------
+'''
+`fetch_videos_snippet(video_ids: list[str], session: requests.Session) -> dict[str, dict]`
+
+Retrieves authoritative metadata for videos using the `videos.list` endpoint.
+
+- Processes video IDs in batches of 50.
+- Extracts `publishedAt` timestamps and titles.
+
+This step is required to classify channel activity accurately.
+'''
 def fetch_videos_snippet(video_ids: list[str], session: requests.Session) -> dict[str, dict]:
     out = {}
     vids = pd.Series(video_ids).dropna().astype(str).unique().tolist()
@@ -270,16 +410,37 @@ def fetch_videos_snippet(video_ids: list[str], session: requests.Session) -> dic
 # ----------------------------
 # parquet cache helpers
 # ----------------------------
+'''
+### `_cache_path(cache_dir: str | Path) -> Path`
+Determines the file path for the parquet cache and ensures the directory exists.
+All cached results are written to `yt_enrichment_cache.parquet`.
+'''
 def _cache_path(cache_dir: str | Path) -> Path:
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir / "yt_enrichment_cache.parquet"
 
+'''
+`load_cache_parquet(cache_dir: str | Path) -> pd.DataFrame`
+
+Loads previously cached enrichment results if available.
+Returns an empty DataFrame if no cache exists.
+'''
 def load_cache_parquet(cache_dir: str | Path) -> pd.DataFrame:
     path = _cache_path(cache_dir)
     if not path.exists():
         return pd.DataFrame()
     return pd.read_parquet(path)
+
+'''`upsert_cache_parquet(cache_dir: str | Path, new_rows: pd.DataFrame) -> None`
+
+Writes new enrichment results to the parquet cache.
+
+- Merges with existing cache if present.
+- Deduplicates on `_channel_id_norm`, keeping the most recent entry.
+
+This enables resumable execution under strict API quotas.
+'''
 
 def upsert_cache_parquet(cache_dir: str | Path, new_rows: pd.DataFrame) -> None:
     path = _cache_path(cache_dir)
@@ -299,6 +460,20 @@ def upsert_cache_parquet(cache_dir: str | Path, new_rows: pd.DataFrame) -> None:
 # ----------------------------
 # resumable main
 # ----------------------------
+'''
+`extend_df_with_youtube_fetch_resumable_parquet(...) -> pd.DataFrame`
+
+End-to-end orchestration function for YouTube channel enrichment.
+
+- Normalizes channel identifiers.
+- Skips previously cached channels.
+- Fetches channel, playlist, and video metadata in chunks.
+- Classifies channel activity for the target year.
+- Merges enriched data back into the original DataFrame.
+- Preserves progress via incremental parquet caching.
+
+This function exposes the full pipeline through a single, resumable interface.
+'''
 def extend_df_with_youtube_fetch_resumable_parquet(
     df: pd.DataFrame,
     channel_col: str,
