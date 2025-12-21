@@ -100,7 +100,8 @@ gantt
 
 ## Contributions
 
-- _Ender Sari_: Focus on research question 1 and YouTube data enrichment. Website implementation for question 1.
+- _Ender Sari_: Focus on research question 1 and YouTube data enrichment. 
+   Website implementation for question 1.
 - _Kalan Walmsley_: Performance-intensive data preprocessing. Focus on research
   question 2. Website implementation. WebAssembly graph visualisation.
 - _Danael Robert-Nicoud_: Focus on research question 3.
