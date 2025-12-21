@@ -168,10 +168,10 @@ gantt
         Finish up          : 2025-12-10, 2025-12-17
 ```
 
-## Organisation within the team
+## Final responsibilities within the team
 
-- _Ender Sari_: Focus on RQ1 and RQ2
+- _Ender Sari_: Focus on RQ1
 - _Kalan Walmsley_: Focus on preprocessing and RQ2
-- _Veronika Wannack_: Focus on website creation and story
-- _Jan Tomasz Juraszek_: Focus on temporal evolution, and RQ3
-- _Danael Robert-Nicoud_: Focus on RQ1 and RQ3
+- _Veronika Wannack_: Website design and implementatiob
+- _Jan Tomasz Juraszek_: Website implementation and story
+- _Danael Robert-Nicoud_: Focus on RQ3

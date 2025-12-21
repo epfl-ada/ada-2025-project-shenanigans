@@ -13,6 +13,7 @@ dataset/
 /.vscode
 /.vscode/settings.json
 .env
+/hw
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

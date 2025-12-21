@@ -19,30 +19,26 @@ repo_root = Path(__file__).parent.parent.parent
 
 
 
-SYSTEM_PROMPT = """You are a domain categorization expert analyzing YouTube creator economy links. Your goal is to use your knowledge and common sense to categorize the URLS inside the description.
+SYSTEM_PROMPT = """You are classifying URLs found in YouTube video descriptions.
 
-Categories:
-monetization/direct: where you can donate directly to the youtuber 
-monetization/merch: where a youtuber sells merch 
-monetization/sponsors: companies that are known to sponsor youtube videos
-monetization/affiliates: websites where the youtuber can earn a commission
-monetization/stores: the youtuber's store 
-monetization/courses: the youtuber's courses 
-url_shorteners: specific websites that redirect you to ANOTHER website. this does NOT mean the shortened form of a specific website, ie spoti.fi redirects to spotify: spoti.fi is NOT a url shortener
-social_media: all forms where youtubers interact, including discord and twitch. 
-content/music: anyplace youtubers can find and share music
-content/video: anyplace youtubers can find and share videos
-content/portfolios: youtuber's portfolios
-gaming: any website thats gaming related
-legal/reference: any website that can be used for sources or backing up what the user "did"
-news: any news source 
-entertainement: any entertainement source (for example, but not only: nba, nickelodeon)
-utils: Any website that can be useful to the process of creating and maintaining a youtube channel
-other: not part of other categories above
-non-existing site: websites that no longer exist, and are not online. 
-unsure: category for IF YOU ARE UNSURE! Try your best to categorize everything you can, only put it here if you truly don't know
+Classify as "yes" (MONETIZATION) if the URL is likely used by the creator to earn money:
+- Amazon links (amazon.com, amazon.de, amazon.co.uk, amzn.to, etc.) - creators use affiliate programs
+- Affiliate/referral links and link shorteners that typically mask affiliate links
+- Merchandise stores (teespring, spreadshirt, merch sites)
+- Direct support/donation platforms (patreon, ko-fi, buymeacoffee, paypal.me)
+- Sponsor landing pages or promo codes
+- Creator's own product/course sales pages
 
-Return ONLY the category name from the list above."""
+Classify as "no" (NOT MONETIZATION) if the URL is:
+- Social media profiles (twitter, instagram, facebook, tiktok)
+- Community links (discord, reddit)
+- Video platforms for content (youtube, twitch, youtu.be)
+- Free content/streaming platforms (soundcloud, spotify)
+- News/reference sites (wsj, wikipedia)
+- General information or attribution (creativecommons.org)
+- App store links
+
+Respond with ONLY "yes" or "no"."""
 
 def categorize_single_domain(domain: str, client: openai.OpenAI) -> str:
     try:
@@ -71,7 +67,7 @@ def categorize_domains_batch(
     client: openai.OpenAI,
     batch_size: int = 1,
     delay: float = 0.1,
-    checkpoint_file: Path = repo_root/ "process" / "categorize_urls_LLM" /'sponsoreddomains_unshortened_checkpoint_v2.csv'
+    checkpoint_file: Path = repo_root/ "process" / "categorize_urls_LLM" /'sponsoreddomains_unshortened_v4_full_data.csv'
 ) -> pd.DataFrame:
     results = []
     total = len(domains_df)
@@ -101,13 +97,13 @@ def main():
     api_key = os.getenv("OPENAI_API_KEY")
 
     domains = pd.read_csv(
-    repo_root/"dataset"/"sponsoreddomains_unshortened.csv.gz", 
+    repo_root/"dataset"/"full_urls.csv", 
     header=None,  
     names=['domain', 'count']  
     )
     
     #>100 appearances = 1.6k urls 
-    domains = domains[domains['count'] >= 100].copy()
+    #domains = domains[domains['count'] >= 10000].copy()
     # Filter domains with >= 10000 appearances
     #domains_filtered = domains[domains['count'] >= 10000].copy()
     #print(f"Domains with >=10000 appearances: {len(domains_filtered):,}")
@@ -122,7 +118,7 @@ def main():
     )
     
     # Save results
-    output_file = repo_root/'sponsoreddomains_unshortened_final_v2.csv'
+    output_file = repo_root/'sponsoreddomains_unshortened_v4_full_data.csv'
     domains_categorized.to_csv(output_file, index=False)
     print(f"\nResults saved to {output_file}")
 
