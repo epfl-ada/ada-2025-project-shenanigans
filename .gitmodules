@@ -1,0 +1,3 @@
+[submodule "ADA-website"]
+	path = ADA-website
+	url = https://github.com/ri-ru/ADA-website
