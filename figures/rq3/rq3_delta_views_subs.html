@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RQ3 - views and subs</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: rgba(15, 23, 42, 0.85);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: rgba(148, 163, 184, 0.3);
+      --accent: #38bdf8;
+      --pill-radius: 999px;
+      --panel-radius: 14px;
+      --font: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .toggle-button {
+      padding: 6px 14px;
+      border-radius: var(--pill-radius);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .toggle-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(148, 163, 184, 0.65);
+    }
+
+    .toggle-button.active {
+      background: var(--accent);
+      color: #0b1120;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.25);
+      font-weight: 600;
+    }
+
+    .chart-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--panel-radius);
+      padding: 14px;
+      width: min(1200px, 100%);
+      height: clamp(420px, 60vh, 640px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+      flex: 1;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="mainTitle"></h1>
+
+  <div class="controls">
+    <button id="btnViews" class="toggle-button active">views</button>
+    <button id="btnSubs" class="toggle-button">subscribers</button>
+  </div>
+
+  <div class="chart-card">
+    <canvas id="rq3Chart"></canvas>
+  </div>
+
+  <script>
+    const viewsData = {"delta_weeks": [-26, -25, -24, -23, -22, -21, -20, -19, -18, -17, -16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26], "mean_log_val": [11.415298222060734, 11.411536966066441, 11.428266831976247, 11.466097330540888, 11.501160361443288, 11.556543177684869, 11.580725298282175, 11.596931721273654, 11.630837735147107, 11.639184690246264, 11.663569374850693, 11.685001949650115, 11.71331214893837, 11.73962807523971, 11.754913832610299, 11.75035204483262, 11.781898989233936, 11.798148355782347, 11.86964163386414, 11.894560867889064, 11.912001537436021, 11.925521715630683, 11.963099461463475, 11.990751268227601, 11.968138911132534, 12.008962959063044, 12.149773587420457, 12.199760114672124, 12.206952932553893, 12.165596041288113, 12.166983785208629, 12.137764428102834, 12.129082720487876, 12.12603587837244, 12.162192924519113, 12.19163431993136, 12.167546326023459, 12.17422733475334, 12.17539778986021, 12.216344223872273, 12.20329834994699, 12.200684496410672, 12.21401505235416, 12.241869208950547, 12.233840756951366, 12.213859651873396, 12.243443649833617, 12.247082028684629, 12.245381816713602, 12.252481554417427, 12.269919472705103, 12.256788465032816, 12.24571490711966], "ci_lower": [11.34913946990947, 11.344686025903972, 11.361115494122963, 11.400223873796742, 11.43587941223707, 11.492767529423086, 11.518009950414712, 11.534522461420194, 11.569172683385368, 11.576757845663348, 11.601589586724913, 11.62372227538267, 11.652980684414047, 11.67975179285999, 11.695263414937536, 11.689845567064943, 11.721717289273927, 11.737833278137373, 11.811763155981984, 11.836816689270885, 11.854629437200925, 11.867961605465315, 11.906848522627609, 11.93507528813176, 11.910649792327668, 11.95164875040642, 12.092723137117025, 12.14284398834357, 12.15296126145171, 12.110335215648472, 12.11201153285654, 12.081596624440301, 12.071921414640734, 12.068263884547521, 12.106165050185442, 12.135951372415061, 12.110361798095996, 12.116893402881285, 12.11776372835878, 12.160351798402093, 12.145813386265267, 12.143011777603757, 12.156680839065938, 12.185016676002036, 12.175441359027944, 12.153530056833482, 12.184641790324099, 12.18780883143618, 12.18511013729766, 12.191758084287526, 12.20918894112547, 12.194903478873849, 12.183009355617253], "ci_upper": [11.481456974211998, 11.47838790622891, 11.49541816982953, 11.531970787285035, 11.566441310649507, 11.620318825946653, 11.643440646149639, 11.659340981127114, 11.692502786908847, 11.70161153482918, 11.725549162976474, 11.74628162391756, 11.773643613462692, 11.799504357619428, 11.814564250283063, 11.810858522600299, 11.842080689193944, 11.858463433427321, 11.927520111746295, 11.952305046507243, 11.969373637671117, 11.983081825796052, 12.019350400299341, 12.046427248323443, 12.025628029937401, 12.066277167719669, 12.206824037723889, 12.256676241000678, 12.260944603656077, 12.220856866927754, 12.221956037560718, 12.193932231765366, 12.186244026335018, 12.183807872197358, 12.218220798852784, 12.24731726744766, 12.224730853950922, 12.231561266625395, 12.23303185136164, 12.272336649342453, 12.260783313628714, 12.258357215217586, 12.271349265642382, 12.298721741899058, 12.292240154874788, 12.27418924691331, 12.302245509343136, 12.306355225933077, 12.305653496129544, 12.313205024547328, 12.330650004284736, 12.318673451191783, 12.308420458622068]};
+    const subsData = {"delta_weeks": [-26, -25, -24, -23, -22, -21, -20, -19, -18, -17, -16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26], "mean_log_val": [6.36967740573278, 6.373497942889319, 6.405710819102485, 6.4278236089676675, 6.448734356329176, 6.499937987923992, 6.523423390064546, 6.526447791228823, 6.563166837453415, 6.585102414880488, 6.597127899868076, 6.616021682440037, 6.633801544900528, 6.658409839243359, 6.680515491651305, 6.682873318443105, 6.724301664196161, 6.71951093191787, 6.752846112438837, 6.7920015552752435, 6.803715941990531, 6.832560625579853, 6.847161558593527, 6.859897238873867, 6.860642548811807, 6.883950638516553, 7.060282742651848, 7.117302481271285, 7.047478601188306, 7.014282403047755, 6.982250155002045, 6.977050019217825, 6.944644336535143, 6.946817164198641, 6.961433958506193, 6.96771148708546, 6.953113876072791, 6.960546913823334, 6.962588563060646, 6.978299718427395, 6.9703382170539525, 6.942823744302887, 6.938081959843367, 6.963684379178359, 6.962963086752738, 6.960190173730676, 6.946952591212807, 6.9434431405979025, 6.966132614994224, 6.957398505317263, 6.969543454657557, 6.953777187044263, 6.940710606201286], "ci_lower": [6.3141755755983775, 6.317789123853006, 6.350644645424297, 6.37290459774241, 6.39422183445237, 6.446214850061804, 6.470575163368182, 6.473048728804444, 6.510460577718176, 6.532644687564597, 6.544680384600854, 6.564130929400921, 6.581993396845531, 6.607134252637538, 6.6296180571095205, 6.631606499842986, 6.673711180802143, 6.66803576790395, 6.701797105332382, 6.742147665693362, 6.753798397325284, 6.783166764647929, 6.798243335531133, 6.810941338044089, 6.811634878340165, 6.8347325460670225, 7.011149308440524, 7.068669817429018, 6.9990453802339765, 6.965666656552035, 6.933242989526991, 6.927959220406765, 6.894630786951819, 6.8968776725326375, 6.911247640109839, 6.916822777511724, 6.902077127874766, 6.9095514508300235, 6.911167944124478, 6.926723205616155, 6.917904506009058, 6.889375527830873, 6.884278898519565, 6.9103138597179825, 6.9087033365478625, 6.905726258778159, 6.89167827120756, 6.888050702000351, 6.910620080032369, 6.900636270093321, 6.912950263789579, 6.8963426086291015, 6.882724092226702], "ci_upper": [6.425179235867183, 6.429206761925632, 6.460776992780674, 6.482742620192925, 6.503246878205982, 6.553661125786179, 6.57627161676091, 6.579846853653202, 6.615873097188654, 6.63756014219638, 6.649575415135297, 6.667912435479153, 6.685609692955525, 6.70968542584918, 6.73141292619309, 6.734140137043223, 6.774892147590179, 6.770986095931789, 6.803895119545292, 6.841855444857125, 6.853633486655778, 6.881954486511777, 6.896079781655921, 6.908853139703644, 6.909650219283449, 6.933168730966083, 7.1094161768631725, 7.165935145113552, 7.095911822142636, 7.062898149543475, 7.031257320477098, 7.0261408180288845, 6.994657886118468, 6.996756655864644, 7.011620276902547, 7.018600196659197, 7.0041506242708165, 7.011542376816645, 7.014009181996815, 7.029876231238634, 7.022771928098847, 6.996271960774901, 6.991885021167169, 7.017054898638735, 7.017222836957613, 7.0146540886831925, 7.002226911218054, 6.998835579195454, 7.02164514995608, 7.014160740541206, 7.0261366455255345, 7.011211765459425, 6.998697120175869]};
+
+    const mainTitle = "Weekly mean log(delta_metric + 1) around first sponsor appearance, averaged across multiple channels for each week";
+    const yLabelViews = "Mean log(delta_views + 1)";
+    const yLabelSubs = "Mean log(delta_subs + 1)";
+
+    const yMinViews = 11.2;
+    const yMaxViews = 12.4;
+    const yMinSubs  = 6.2;
+    const yMaxSubs  = 7.4;
+
+    const yLabelPosViews = 12.32;
+    const yLabelPosSubs  = 7.32;
+
+    document.getElementById('mainTitle').textContent = mainTitle;
+
+    function buildPoints(metricData) {
+      const deltaWeeks = metricData.delta_weeks;
+      const meanLogVal = metricData.mean_log_val;
+      const ciLower    = metricData.ci_lower;
+      const ciUpper    = metricData.ci_upper;
+
+      const upperPoints = deltaWeeks.map((x, i) => ({ x: x, y: ciUpper[i] }));
+      const lowerPoints = deltaWeeks.map((x, i) => ({ x: x, y: ciLower[i] }));
+      const meanPoints  = deltaWeeks.map((x, i) => ({ x: x, y: meanLogVal[i] }));
+
+      return {
+        deltaWeeks,
+        meanLogVal,
+        upperPoints,
+        lowerPoints,
+        meanPoints
+      };
+    }
+
+    const snapHoverPlugin = {
+      id: 'snapHoverPlugin',
+      afterEvent(chart, args) {
+        const event = args.event;
+        const xScale = chart.scales.x;
+        if (!xScale) return;
+
+        function startLineAnimation() {
+          if (chart.$lineRaf) {
+            cancelAnimationFrame(chart.$lineRaf);
+          }
+
+          const animate = () => {
+            if (chart.$snapX == null || chart.$snapXTarget == null) {
+              chart.$lineRaf = null;
+              return;
+            }
+
+            const dx = chart.$snapXTarget - chart.$snapX;
+
+            if (Math.abs(dx) < 0.5) {
+              chart.$snapX = chart.$snapXTarget;
+              chart.$lineRaf = null;
+              chart.draw();
+              return;
+            }
+
+            chart.$snapX += dx * 0.25;
+            chart.draw();
+            chart.$lineRaf = requestAnimationFrame(animate);
+          };
+
+          chart.$lineRaf = requestAnimationFrame(animate);
+        }
+
+        if (event.type === 'mousemove') {
+          const area = chart.chartArea;
+          if (!area) return;
+
+          if (event.x < area.left || event.x > area.right ||
+              event.y < area.top  || event.y > area.bottom) {
+            chart.$snapX = null;
+            chart.$snapXTarget = null;
+            if (chart.$lineRaf) {
+              cancelAnimationFrame(chart.$lineRaf);
+              chart.$lineRaf = null;
+            }
+            chart.setActiveElements([]);
+            chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+            return;
+          }
+
+          const xValue = xScale.getValueForPixel(event.x);
+          if (xValue == null || isNaN(xValue)) return;
+
+          const data = chart.data.datasets[2].data;
+          if (!data || !data.length) return;
+
+          let nearestIndex = 0;
+          let minDist = Math.abs(xValue - data[0].x);
+          for (let i = 1; i < data.length; i++) {
+            const d = Math.abs(xValue - data[i].x);
+            if (d < minDist) {
+              minDist = d;
+              nearestIndex = i;
+            }
+          }
+
+          const meta = chart.getDatasetMeta(2);
+          const elem = meta.data[nearestIndex];
+          if (!elem) return;
+
+          if (chart.$snapX == null) {
+            chart.$snapX = elem.x;
+          }
+
+          chart.$snapXTarget = elem.x;
+          startLineAnimation();
+
+          chart.setActiveElements([{ datasetIndex: 2, index: nearestIndex }]);
+          chart.tooltip.setActiveElements(
+            [{ datasetIndex: 2, index: nearestIndex }],
+            { x: elem.x, y: event.y }
+          );
+
+        } else if (event.type === 'mouseout') {
+          chart.$snapX = null;
+          chart.$snapXTarget = null;
+          if (chart.$lineRaf) {
+            cancelAnimationFrame(chart.$lineRaf);
+            chart.$lineRaf = null;
+          }
+          chart.setActiveElements([]);
+          chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+        }
+      }
+    };
+
+    const hoverLinePlugin = {
+      id: 'hoverLinePlugin',
+      afterDatasetsDraw(chart) {
+        const x = chart.$snapX;
+        if (x == null) return;
+
+        const { ctx, chartArea: { top, bottom } } = chart;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, top);
+        ctx.lineTo(x, bottom);
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
+    const ctx = document.getElementById('rq3Chart').getContext('2d');
+
+    let currentMetric = 'views';
+    let initial = buildPoints(viewsData);
+
+    const rq3Chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [
+          {
+            label: 'CI upper',
+            data: initial.upperPoints,
+            borderWidth: 0,
+            pointRadius: 0,
+            fill: false,
+          },
+          {
+            label: '95% CI',
+            data: initial.lowerPoints,
+            borderWidth: 0,
+            pointRadius: 0,
+            fill: { target: '-1' },
+            backgroundColor: 'rgba(148, 163, 184, 0.25)',
+          },
+          {
+            label: yLabelViews,
+            data: initial.meanPoints,
+            borderColor: '#38bdf8',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#38bdf8',
+            pointBorderColor: '#38bdf8',
+            pointHoverBackgroundColor: '#38bdf8',
+            pointHoverBorderColor: '#e5e7eb',
+            pointHoverBorderWidth: 2,
+            tension: 0,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'x',
+          intersect: false,
+          axis: 'xy'
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              color: '#e5e7eb',
+              font: {
+                size: 12
+              },
+              filter: function(item) {
+                return item.text !== 'CI upper';
+              },
+              usePointStyle: true,
+              pointStyle: function(context) {
+                return context.datasetIndex === 2 ? 'circle' : 'rect';
+              },
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.96)',
+            titleColor: '#e5e7eb',
+            bodyColor: '#e5e7eb',
+            borderColor: 'rgba(148, 163, 184, 0.6)',
+            borderWidth: 1,
+            displayColors: false,
+            padding: 10,
+            bodyFont: {
+              size: 13
+            },
+            callbacks: {
+              title: function() {
+                return '';
+              },
+              label: function(context) {
+                if (context.datasetIndex === 2) {
+                  const week = context.parsed.x;
+                  const value = context.parsed.y.toFixed(3);
+                  const label = context.dataset.label || '';
+                  return [`Week: ${week}`, `${label}: ${value}`];
+                }
+                return null;
+              }
+            },
+            filter: function(tooltipItem) {
+              return tooltipItem.datasetIndex === 2;
+            }
+          },
+          annotation: {
+            annotations: {
+              vline: {
+                type: 'line',
+                xMin: 0,
+                xMax: 0,
+                yMin: yMinViews,
+                yMax: yMaxViews,
+                borderColor: '#38bdf8',
+                borderWidth: 3,
+                borderDash: [5, 5]
+              },
+              vlineLabel: {
+                type: 'label',
+                xValue: 0,
+                yValue: yLabelPosViews,
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                borderWidth: 1,
+                borderColor: 'rgba(148, 163, 184, 0.6)',
+                borderRadius: 6,
+                color: '#e5e7eb',
+                content: ['First sponsor appearance (week 0)'],
+                font: {
+                  size: 11
+                },
+                padding: 6
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            min: -26,
+            max: 26,
+            title: {
+              display: true,
+              text: 'Weeks relative to first sponsor',
+              color: '#e5e7eb',
+              font: {
+                size: 13
+              }
+            },
+            ticks: {
+              color: '#94a3b8',
+              callback: function(value) {
+                const validTicks = [-25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25];
+                if (validTicks.includes(value)) {
+                  return value;
+                }
+                return '';
+              }
+            },
+            grid: {
+              color: 'rgba(15, 23, 42, 0.85)',
+              lineWidth: 1
+            }
+          },
+          y: {
+            min: yMinViews,
+            max: yMaxViews,
+            title: {
+              display: true,
+              text: yLabelViews,
+              color: '#e5e7eb',
+              font: {
+                size: 13
+              }
+            },
+            ticks: {
+              color: '#94a3b8'
+            },
+            grid: {
+              color: 'rgba(15, 23, 42, 0.85)',
+              lineWidth: 1
+            }
+          }
+        }
+      },
+      plugins: [snapHoverPlugin, hoverLinePlugin]
+    });
+
+    function updateChart(metricKey) {
+      const isViews = metricKey === 'views';
+      const metricData = isViews ? viewsData : subsData;
+      const labelY    = isViews ? yLabelViews : yLabelSubs;
+
+      const pts = buildPoints(metricData);
+
+      rq3Chart.data.datasets[0].data = pts.upperPoints;
+      rq3Chart.data.datasets[1].data = pts.lowerPoints;
+      rq3Chart.data.datasets[2].data = pts.meanPoints;
+      rq3Chart.data.datasets[2].label = labelY;
+
+      const yMin = isViews ? yMinViews : yMinSubs;
+      const yMax = isViews ? yMaxViews : yMaxSubs;
+      const yLabelPos = isViews ? yLabelPosViews : yLabelPosSubs;
+
+      rq3Chart.options.scales.y.title.text = labelY;
+      rq3Chart.options.scales.y.min = yMin;
+      rq3Chart.options.scales.y.max = yMax;
+
+      rq3Chart.options.plugins.annotation.annotations.vline.yMin = yMin;
+      rq3Chart.options.plugins.annotation.annotations.vline.yMax = yMax;
+      rq3Chart.options.plugins.annotation.annotations.vlineLabel.yValue = yLabelPos;
+
+      rq3Chart.update();
+
+      rq3Chart.$snapX = null;
+      rq3Chart.$snapXTarget = null;
+      if (rq3Chart.$lineRaf) {
+        cancelAnimationFrame(rq3Chart.$lineRaf);
+        rq3Chart.$lineRaf = null;
+      }
+      rq3Chart.setActiveElements([]);
+      rq3Chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    }
+
+    const btnViews = document.getElementById('btnViews');
+    const btnSubs  = document.getElementById('btnSubs');
+
+    btnViews.addEventListener('click', () => {
+      if (currentMetric !== 'views') {
+        currentMetric = 'views';
+        btnViews.classList.add('active');
+        btnSubs.classList.remove('active');
+        updateChart('views');
+      }
+    });
+
+    btnSubs.addEventListener('click', () => {
+      if (currentMetric !== 'subs') {
+        currentMetric = 'subs';
+        btnSubs.classList.add('active');
+        btnViews.classList.remove('active');
+        updateChart('subs');
+      }
+    });
+  </script>
+</body>
+</html>
