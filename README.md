@@ -11,6 +11,8 @@
 
 The final website can be found here: https://ri-ru.github.io/ADA-website/
 
+The repository for the website can be additionally found here: https://github.com/ri-ru/ADA-website
+
 ## Abstract
 
 At the beginning of YouTube, creators mainly posted for fun - making something
