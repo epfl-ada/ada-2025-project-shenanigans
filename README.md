@@ -57,6 +57,14 @@ explore the **_effect_** of this on the channels and audiences.
 - Do the **number of views** and the **subscriber growth** change **after
   channels get sponsored**?
 
+## Dataset 
+
+We use two datasets: YouNiverse and SponsorBlock 
+
+The YouNiverse dataset, produced by the ADA lab at EPFL, provides a large-scale overview of the English-language YouTube ecosystem. It incorporates metadata for more than 72.9 million videos and 153,550 channels with weekly time series, totally 18,872,499 observations. 
+
+SponsorBlock is an open-source browser extension enabling users to automatically skip chosen types of segments on YouTube videos (preview, credits, sponsor segments, ...) and it is crowdsourced: users submit the start and end times of these segments. For this project, only the sponsor segment category is selected, thus including only videos with paid promotional content for a brand or product.
+
 ## Dataset enrichment
 
 ### Sponsor segment analysis
@@ -81,6 +89,34 @@ comparing of stability between professional and indie creators.
 ## Methods
 
 The bulk of the analysis is detailed [in this notebook](milestone_p3.ipynb).
+
+### Main approach - R1 - Platform Evolution 
+
+- Analysis of upload volumes across categories
+- Classification of links and adoption rate tracking
+- Cross-category comparisons of industry-like patterns
+
+### Main approach - R2 - Path to Sponsorship
+
+- Distribution fitting for time-to-first-sponsor 
+- Log-normal distribution analysis for video count thresholds
+- Category transition analysis using 6-month windows before/after first sponsorship
+- Channel-sponsor network construction with Leiden community detection
+- Paired t-test comparing sponsored vs. non-sponsored channel longevity
+
+### Main approach - R3 - Engagement Analysis
+
+- Dumbbell plots comparing sponsored vs. non-sponsored video metrics
+- Time-series analysis of delta_views and delta_subs around first sponsorship
+- Engagement comparisons
+
+## Main takeaways 
+
+YouTube grew enormously in volume from 2008 to 2018. Creators professionalized in different ways: adding monetization, social, and content links. Different categories did it at different speeds.
+
+On median, it takes <b>~3 years</b> and <b>~148 videos</b> to land your first sponsor. Sponsored channels are <b>16% more likely</b> to still be active in 2025. Thresholds for views, subs, and videos <b>vary with category</b>.
+
+Sponsored videos get <b>more views</b>, are <b>longer</b>, and have <b>higher like ratios</b>. But after your first sponsor, growth rate <b>slows down</b>! 
 
 ## Initial timeline
 
