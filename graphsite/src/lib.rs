@@ -1,6 +1,4 @@
 #![cfg(target_arch = "wasm32")]
-use std::cell::RefCell;
-
 use crate::app::Adapp;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
@@ -8,10 +6,6 @@ use wasm_bindgen_futures as _; // ensure the crate is linked for wasm_bindgen as
 use web_sys::HtmlCanvasElement;
 
 mod app;
-
-thread_local! {
-    static RUNNER: RefCell<Option<eframe::WebRunner>> = RefCell::new(None);
-}
 
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue> {
@@ -21,15 +15,6 @@ pub fn start() -> Result<(), JsValue> {
         let _ = run().await;
     });
     Ok(())
-}
-
-#[wasm_bindgen]
-pub fn stop() {
-    RUNNER.with(|e| {
-        if let Some(runner) = e.borrow_mut().take() {
-            runner.destroy();
-        }
-    });
 }
 
 #[wasm_bindgen]
@@ -50,11 +35,7 @@ pub async fn run() -> Result<(), JsValue> {
         })?;
 
     let web_options = eframe::WebOptions::default();
-
-    let runner = eframe::WebRunner::new();
-    RUNNER.with(|e| e.borrow_mut().replace(runner));
-    let runref = RUNNER.with(|e| e.borrow().as_ref().unwrap().clone());
-    runref
+    eframe::WebRunner::new()
         .start(
             canvas,
             web_options,
@@ -63,6 +44,5 @@ pub async fn run() -> Result<(), JsValue> {
             }),
         )
         .await?;
-
     Ok(())
 }

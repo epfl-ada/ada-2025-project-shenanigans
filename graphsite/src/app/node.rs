@@ -85,7 +85,7 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<N, E, Ty, Ix>
             galley,
             Pos2 {
                 x: circle_center.x,
-                y: circle_center.y - 20.0 * ppp * circle_radius.sqrt(),
+                y: circle_center.y - 10.0 * ppp * circle_radius.sqrt(),
             },
             circle_radius,
             Color32::BLACK,
