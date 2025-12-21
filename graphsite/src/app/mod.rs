@@ -98,7 +98,7 @@ impl Adapp {
             selected_palette: Palette::Connectivity,
             selected_radius: Radius::Constant(2.0),
             selected_width: Width::Constant(0.5),
-            show_sidebar: false,
+            show_sidebar: true,
             pending_layout_state: Some(state),
         };
 
@@ -237,6 +237,29 @@ impl Adapp {
 
     fn ui_sidebar(&mut self, ui: &mut Ui) {
         ScrollArea::vertical().show(ui, |ui| {
+            CollapsingHeader::new("Tutorial").default_open(true).show(ui,
+
+                |ui| {
+                    ui.label(
+                        "In this visualisation, each dot is a YouTube channel, and each connection between channels is a shared sponsor. Try (double-)clicking on a dot!"
+                    );
+                    ui.label(
+                        "You can also play around with the physics, or change the colour maps to see different channels properties. The different maps are as follows:"
+                    );
+                    [
+                        "Connectivity shows how many neighbors each node has (logarithmic scale)",
+                        "Category shows the channel category",
+                        "Subscribers and Videos show the number of subscribers and videos (logarithmic scale)",
+                        "Activity shows channels active in 2025 in red, others in grey",
+                        "Leiden (the most interesting!) shows different community assignments by the Leiden algorithm. It is a community detection algorithm that optimises the modularity of the graph.",
+                    ].iter().for_each(|e| {
+                        ui.horizontal_wrapped(|ui| {
+                            ui.label("•");
+                            ui.label(e.to_owned());
+                        });
+                    });
+                }
+            );
             CollapsingHeader::new("Colours").default_open(true).show(
                 ui,
                 |ui| {
@@ -354,6 +377,28 @@ impl Adapp {
                     );
 
                     GV::set_layout_state(ui, state);
+                },
+            );
+
+            CollapsingHeader::new("Controls").default_open(true).show(
+                ui,
+                |ui| {
+                    let entries = [
+                        ("Ctrl+Scroll", "Zoom"),
+                        ("Drag Background", "Pan"),
+                        ("Click Node", "Select Node"),
+                        ("Double-Click Node", "Open YouTube Channel"),
+                    ];
+                    egui::Grid::new("keybindings")
+                        .num_columns(2)
+                        .spacing(egui::vec2(8.0, 4.0))
+                        .show(ui, |ui| {
+                            for (key, desc) in entries {
+                                ui.code(key);
+                                ui.label(desc);
+                                ui.end_row();
+                            }
+                        });
                 },
             );
         });
