@@ -32,11 +32,11 @@ explore the **_effect_** of this on the channels and audiences.
 
 ### 1. How have channels evolved from indie to professional?
 
-- What is the **adoption curve** of sponsorships between different categories?
-- When and why do we have a **rise of sponsorships**?
-- Have **advertisement strategies** changed over time?
-- Do **different channel sizes** employ **different strategies** (_e.g._
-  multiple sponsors, recurring sponsors, brand partnerships)?
+- How did the **YouTube ecosystem change** as it grew bigger?
+- Did all categories **grow in the same way?**
+- How did **different types of links** (content, social, monetization) spread and change over time?
+- Which categories used **monetization links** the most?
+- Did channels become professional all at once or gradually?
 
 ### 2. What enabled indie channels to become professional-minded?
 
