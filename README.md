@@ -92,23 +92,23 @@ The bulk of the analysis is detailed [in this notebook](milestone_p3.ipynb).
 
 ### Main approach - R1 - Platform Evolution 
 
-- Analysis of upload volumes across categories
-- Classification of links and adoption rate tracking
-- Cross-category comparisons of industry-like patterns
+Analysis of upload volumes across categories
+Classification of links and adoption rate tracking
+Cross-category comparisons of industry-like patterns
 
 ### Main approach - R2 - Path to Sponsorship
 
-- Distribution fitting for time-to-first-sponsor 
-- Log-normal distribution analysis for video count thresholds
-- Category transition analysis using 6-month windows before/after first sponsorship
-- Channel-sponsor network construction with Leiden community detection
-- Paired t-test comparing sponsored vs. non-sponsored channel longevity
+Distribution fitting for time-to-first-sponsor 
+Log-normal distribution analysis for video count thresholds
+Category transition analysis using 6-month windows before/after first sponsorship
+Channel-sponsor network construction with Leiden community detection
+Paired t-test comparing sponsored vs. non-sponsored channel longevity
 
 ### Main approach - R3 - Engagement Analysis
 
-- Dumbbell plots comparing sponsored vs. non-sponsored video metrics
-- Time-series analysis of delta_views and delta_subs around first sponsorship
-- Engagement comparisons
+Dumbbell plots comparing sponsored vs. non-sponsored video metrics
+Time-series analysis of delta_views and delta_subs around first sponsorship
+Engagement comparisons
 
 ## Main takeaways 
 
