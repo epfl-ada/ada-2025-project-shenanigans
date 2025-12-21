@@ -144,7 +144,7 @@ gantt
 
 - _Ender Sari_: Focus on research question 1.
 - _Kalan Walmsley_: Performance-intensive data preprocessing. Focus on research
-  question 2. Website implementation. WebAssembly graph visualisation.
+  question 2. Website implementation. WebAssembly graph visualisation. Cleaning and preparing P3 submission. 
 - _Danael Robert-Nicoud_: Focus on research question 3.
-- _Veronika Wannack_: Website design and implementation.
-- _Jan Tomasz Juraszek_: Website implementation and story.
+- _Veronika Wannack_: Website design and implementation, cleaning and preparing P3 submission. 
+- _Jan Tomasz Juraszek_: Website implementation and story, cleaning and preparing P3 submission. 
